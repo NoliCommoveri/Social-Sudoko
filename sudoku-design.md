@@ -152,6 +152,9 @@ Rendered through the same board component as live play. Standard technique names
 
 Slices 1–5 have no server dependency. If Cloudflare setup stalls, four of six requirements still ship.
 
+Implementation specs for the spec'd slices are in `specs/`; open decisions and
+things needed from outside the code are in `specs/questions.md`.
+
 ---
 
 ## 7. Open decisions
