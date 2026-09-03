@@ -56,7 +56,7 @@ dimensions — size is not difficulty, and difficulty arrives in slice 3.
 Not for a younger player — everyone here is well past it. Its jobs are:
 
 - **Technique-library fixtures.** A 4×4 board is where a naked single is legible
-  at a glance, and slice 5 renders its examples through this same component.
+  at a glance, and slice 4 renders its examples through this same component.
 - **The uniqueness check's hardest test.** 4×4 has only 288 valid grids, which
   makes a subtly wrong solution counter show up as a puzzle with two solutions
   rather than as nothing at all.

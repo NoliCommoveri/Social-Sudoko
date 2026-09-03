@@ -36,7 +36,7 @@ workers, tell me and I will change it in `wrangler.jsonc`.
 
 ### S2 — Nothing else
 
-No secrets, no environment variables, no D1 database, no KV namespace. Slice 6
+No secrets, no environment variables, no D1 database, no KV namespace. Slice 5
 adds a Durable Object, which is declared in `wrangler.jsonc` and needs no
 dashboard action.
 
@@ -81,8 +81,8 @@ is exactly the failure §7.2 is worried about. On-completion-only is punishing
 for a beginner who went wrong forty moves back. The check button puts the cost
 of guessing on the player's own decision to press it.
 
-Slice 4 should count check presses as an assist and keep them out of best times,
-but that is slice 4's problem and I will spec it there.
+Slice 6 should count check presses as an assist and keep them out of best times,
+but that is slice 6's problem and I will spec it there.
 
 ### Q4 — Pencil marks in slice 1?
 
@@ -103,27 +103,34 @@ looks.
 and the mirror might overshoot the target tier. Aesthetics are not worth
 narrowing the tier search.
 
-### Q7 — What persists locally before slice 4 exists?
+### Q7 — What persists locally before the DO exists?
 
-Slices 1–3 have no server. Something still needs to survive a closed tab.
+Slices 1–4 have no server. Something still needs to survive a closed tab.
 
 **Rec:** `localStorage` holds the in-progress board and UI preferences only.
 Explicitly **not** best times or win counts, even though slice 1 could trivially
 write them. Those are `results` / `bests` rows in DO SQLite (§4.6), and writing
-them to `localStorage` first means slice 4 opens with a data migration and a
+them to `localStorage` first means slice 6 opens with a data migration and a
 "which copy is authoritative" question for no gain. Timing does not exist until
-slice 4.
+slice 6.
+
+*Consequence, and the reason this is the recommendation rather than the obvious
+choice:* it makes R4 and R5 depend on the DO, so the timer slice sits after the
+storage foundation in §6 rather than before it. That ordering is the price of
+having exactly one authoritative copy of the only data in this project that
+cannot be regenerated. Reversing this answer moves the timer earlier and buys a
+migration.
 
 ### Q8 — Custom domain?
 
 **Rec: `social-sudoko.<your-subdomain>.workers.dev`, no custom domain.** Free,
-instant, HTTPS, and it satisfies the PWA install requirement in slice 7. Adding
+instant, HTTPS, and it satisfies the PWA install requirement in slice 8. Adding
 a domain later is a dashboard action with no code impact, so this decision costs
 nothing to defer.
 
 ### Q9 — PWA icons
 
-Slice 7 needs real icon files at 192px and 512px, plus a maskable variant.
+Slice 8 needs real icon files at 192px and 512px, plus a maskable variant.
 
 **Rec:** I generate a plain glyph — a 3×3 box with a few filled cells — and
 commit the PNGs. Replace them whenever; they are two files and one manifest
