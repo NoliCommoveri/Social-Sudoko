@@ -19,7 +19,9 @@ Status: design sketch. Everything below marked **Rec** is a recommendation with 
 
 ## 2. Architecture
 
-Three deployable pieces, one `wrangler deploy`.
+One deployment: a Worker that serves the static app from its assets directory and routes WebSocket upgrades to the Durable Object.
+
+Deployment is Cloudflare's GitHub integration. A push to `main` starts a Cloudflare build container which runs `wrangler deploy` and publishes to `social-sudoko.<subdomain>.workers.dev`. Nobody types that command — the build machine does, which is what keeps this inside the no-CLI rule. There is no build step: the app is plain ES modules served as-is. Configuration is `wrangler.jsonc` in the repo root.
 
 ```
 Browser (SPA)
@@ -149,8 +151,14 @@ Rendered through the same board component as live play. Standard technique names
 4. Timer + stats + best times (R5, R4 partial) — first fully useful thing
 5. Technique library (R6) — independent, parallelizable
 6. DO + WebSocket sync, race mode (R1, R3)
+7. PWA — manifest, service worker, install to homescreen
 
 Slices 1–5 have no server dependency. If Cloudflare setup stalls, four of six requirements still ship.
+
+Slice 7 is last by choice, not by dependency — solo play is entirely client-side, so it is offline-capable from slice 1 onward and the PWA slice only has to declare that. Two rules keep it cheap: every URL stays relative, and the served file set stays enumerable. Both are recorded in `specs/slice-01-grid-generator-solo.md` §2.
+
+Implementation specs for the spec'd slices are in `specs/`; open decisions and
+things needed from outside the code are in `specs/questions.md`.
 
 ---
 
