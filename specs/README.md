@@ -4,28 +4,40 @@ Implementation specs for the slice order in `sudoku-design.md` §6. One file per
 slice. A slice is spec'd only when it is next or nearly next; unspec'd slices
 live only as the one-line entry in §6.
 
-| Slice | Spec | State |
-|---|---|---|
-| 1 | [`slice-01-grid-generator-solo.md`](slice-01-grid-generator-solo.md) | Spec'd, not started |
-| 2 | [`slice-02-three-grid-sizes.md`](slice-02-three-grid-sizes.md) | Spec'd, not started |
-| 3 | [`slice-03-solver-and-tiering.md`](slice-03-solver-and-tiering.md) | Spec'd, not started |
-| 4 | Technique library | Not spec'd |
-| 5 | Storage foundation — DO, migrations, admin page, export/import | Not spec'd |
-| 6 | Timer + stats + best times | Not spec'd |
-| 7 | WebSocket sync + race mode | Not spec'd |
-| 8 | PWA | Not spec'd |
+| Slice | Spec | Cost | State |
+|---|---|---|---|
+| 1 | [`slice-01-grid-generator-solo.md`](slice-01-grid-generator-solo.md) | Medium | Spec'd, not started |
+| 2 | [`slice-02-three-grid-sizes.md`](slice-02-three-grid-sizes.md) | Small | Spec'd, not started |
+| 3 | [`slice-03-solver-and-rating.md`](slice-03-solver-and-rating.md) | Medium | Spec'd, not started |
+| 4 | [`slice-04-difficulty-tiers.md`](slice-04-difficulty-tiers.md) | Medium | Spec'd, not started |
+| 5 | Technique library + hints | — | Not spec'd |
+| 6 | Storage foundation — DO, migrations, admin page, export/import | — | Not spec'd |
+| 7 | Timer + stats + best times | — | Not spec'd |
+| 8 | WebSocket sync + race mode | — | Not spec'd |
+| 9 | PWA | — | Not spec'd |
 
-Slice 5 is the first slice that writes a row, and everything `CLAUDE.md` says
+No slice is estimated above Medium. `CLAUDE.md` caps a session at ~120k tokens
+and says a Large slice should be split rather than started; a spec that comes out
+Large is a spec that has not been cut yet. Slices 3 and 4 were one Large slice —
+the cut is described in `slice-03-solver-and-rating.md` §1.
+
+Slice 6 is the first slice that writes a row, and everything `CLAUDE.md` says
 about migrations, seeds, the admin page, drift, erase, and JSON export belongs to
-it. Slice 6 is the first slice that depends on it. Nothing before slice 5 stores
+it. Slice 7 is the first slice that depends on it. Nothing before slice 6 stores
 anything a player would miss (`questions.md` Q7).
 
 All open items live in [`questions.md`](questions.md): `S`* (a setup task only
 you can do, in a browser), `D`* (a due out — needs information I do not have),
 and `Q`* (an open question where I have a recommendation and will build it
 unless you say otherwise). Slice files reference those IDs rather than restating
-them. No due outs are currently open; S1 — connecting the repo to Cloudflare —
-is waiting on slice 1 to produce something worth serving.
+them. No due outs are currently open.
+
+**Anything a slice cannot verify on its own is an `S`* item, not a line in that
+slice's acceptance criteria.** Timing on the phone, a touch layout, a
+keyboard-only run, a deployed URL — none of those can be closed by CI or by me,
+and a criterion nobody owns is a criterion that gets assumed. S1 connects the
+repo to Cloudflare; S2 is slice 1's four device checks. Slice 4's generation
+budget will need the same treatment when that slice starts.
 
 ## Conventions these specs assume
 
@@ -40,8 +52,13 @@ from taste, so changing one is a project-level decision, not a slice-level one.
 - **Pure core.** `public/src/core/` never touches the DOM, `window`, or storage. It is
   importable by both the browser and the CI test runner, which is what lets the
   same tests cover both.
-- **Size-parameterized from line one.** No module outside `SIZES` may contain a
-  literal `9`, `3`, or `81`. Enforced by a test that greps the core sources.
+- **Size-parameterized from line one.** No module outside `sizes.js` may contain
+  a literal `4`, `6`, `9`, `16`, `36`, or `81`. Enforced by a test that greps the
+  core sources. `3` is banned too, but with a short exemption list for the
+  structural constants that genuinely equal three and are not dimensions —
+  `UNIT_KINDS`, `MAX_TIER`. The list lives in the test and grows only by a
+  deliberate edit. `2` is not banned; it is unusable as a signal.
+  `slice-01-grid-generator-solo.md` §6 has the rule in full.
 - **Everything served lives under `public/`.** That directory is the Worker's
   assets directory; the repo's docs and tests are not published.
 - **Chrome only, current.** The players are on Android phones and a Chromebook.

@@ -43,20 +43,28 @@ layout cases.
 
 ### Persistence
 
-`store/local.js` keys the saved game by size, so switching to 6×6 and back does
-not destroy an in-progress 9×9. The key becomes `sudoku.v1.game.<sizeKey>`.
+Nothing changes in `store/local.js`. Slice 1 already writes
+`sudoku.v1.game.<sizeKey>` (slice 1 §5) with only `9` in use, so switching to
+6×6 and back does not destroy an in-progress 9×9 and there is no key to migrate.
+Had slice 1 written a single unsuffixed key, this slice would be silently
+throwing away whatever board every player had open at the moment it deployed.
+
+The size preference goes in the existing `sudoku.v1.prefs` object as
+`sizeKey`. Preferences are one key with many fields, not one key per preference
+— they are read and written together at startup and on change, and a missing
+field falls back to a default rather than being an error.
 
 ### Size picker
 
-Three buttons, last choice persisted as a preference. No labels beyond the
-dimensions — size is not difficulty, and difficulty arrives in slice 3.
+Three buttons, last choice persisted (`prefs.sizeKey`). No labels beyond the
+dimensions — size is not difficulty, and difficulty arrives in slice 4.
 
 ## 3. What 4×4 is for
 
 Not for a younger player — everyone here is well past it. Its jobs are:
 
 - **Technique-library fixtures.** A 4×4 board is where a naked single is legible
-  at a glance, and slice 4 renders its examples through this same component.
+  at a glance, and slice 5 renders its examples through this same component.
 - **The uniqueness check's hardest test.** 4×4 has only 288 valid grids, which
   makes a subtly wrong solution counter show up as a puzzle with two solutions
   rather than as nothing at all.
@@ -79,10 +87,14 @@ R2 requires it regardless. This section exists so nobody spends effort making
 1. All three sizes deal, play, check, and complete.
 2. 6×6 box borders correct at every one of the 36 cells, verified by test and by
    eye on `dev.html`.
-3. Switching size mid-game preserves the other size's board.
-4. `no-hardcoded-sizes.test.js` still passes.
+3. Switching size mid-game preserves the other size's board, and the size
+   choice survives a reload.
+4. `no-hardcoded-sizes.test.js` still passes — including its `3` exemption list,
+   which must not have grown to cover a box dimension that slipped in here. 6×6
+   is the size that tempts one.
 
 ## 6. Explicitly not in this slice
 
-Difficulty, tiering, the solver, timing, stats. A 4×4 is easier than a 9×9, but
-that is not what R3 means and this slice must not pretend it is.
+Difficulty, tiering, the solver, pencil marks, timing, stats. A 4×4 is easier
+than a 9×9, but that is not what R3 means and this slice must not pretend it
+is.
