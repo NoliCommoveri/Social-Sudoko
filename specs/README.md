@@ -9,10 +9,16 @@ live only as the one-line entry in §6.
 | 1 | [`slice-01-grid-generator-solo.md`](slice-01-grid-generator-solo.md) | Spec'd, not started |
 | 2 | [`slice-02-three-grid-sizes.md`](slice-02-three-grid-sizes.md) | Spec'd, not started |
 | 3 | [`slice-03-solver-and-tiering.md`](slice-03-solver-and-tiering.md) | Spec'd, not started |
-| 4 | Timer + stats + best times | Not spec'd |
-| 5 | Technique library | Not spec'd |
-| 6 | DO + WebSocket sync, race mode | Not spec'd |
-| 7 | PWA | Not spec'd |
+| 4 | Technique library | Not spec'd |
+| 5 | Storage foundation — DO, migrations, admin page, export/import | Not spec'd |
+| 6 | Timer + stats + best times | Not spec'd |
+| 7 | WebSocket sync + race mode | Not spec'd |
+| 8 | PWA | Not spec'd |
+
+Slice 5 is the first slice that writes a row, and everything `CLAUDE.md` says
+about migrations, seeds, the admin page, drift, erase, and JSON export belongs to
+it. Slice 6 is the first slice that depends on it. Nothing before slice 5 stores
+anything a player would miss (`questions.md` Q7).
 
 All open items live in [`questions.md`](questions.md): `S`* (a setup task only
 you can do, in a browser), `D`* (a due out — needs information I do not have),

@@ -137,7 +137,7 @@ Rendered through the same board component as live play. Standard technique names
 
 ## 5. Modes
 
-**Solo + timer (R5).** Simplest slice, no DO required at all — pure client plus a stats write. Reasonable first vertical slice.
+**Solo + timer (R5).** Pure client apart from the stats write, which goes to the DO like every other stat (§4.6). Play itself needs no server; recording a best time does.
 
 **Race (R1).** Shared puzzle, per-player tier, independent boards. DO broadcasts progress (cells-filled count, not contents) and finish events.
 
@@ -148,14 +148,17 @@ Rendered through the same board component as live play. Standard technique names
 1. Grid model + generator + solo play, one grid size — no timer, no server
 2. All three grid sizes
 3. Solver + tiering
-4. Timer + stats + best times (R5, R4 partial) — first fully useful thing
-5. Technique library (R6) — independent, parallelizable
-6. DO + WebSocket sync, race mode (R1, R3)
-7. PWA — manifest, service worker, install to homescreen
+4. Technique library (R6) — independent, parallelizable
+5. Storage foundation — the DO, the schema, migrations, the admin page, JSON export and re-import
+6. Timer + stats + best times (R5, R4) — first fully useful thing
+7. WebSocket sync + race mode (R1, R3)
+8. PWA — manifest, service worker, install to homescreen
 
-Slices 1–5 have no server dependency. If Cloudflare setup stalls, four of six requirements still ship.
+Slices 1–4 have no server dependency, and they ship R2 and R6 in full plus the tiering mechanism R3 rests on. R1, R4, and R5 all need the DO, because every stat this project keeps lives in DO SQLite (§4.6) and none of it is mirrored client-side. If Cloudflare setup stalls, what still ships is solo play at three sizes and three difficulties with the technique library — not four of six requirements.
 
-Slice 7 is last by choice, not by dependency — solo play is entirely client-side, so it is offline-capable from slice 1 onward and the PWA slice only has to declare that. Two rules keep it cheap: every URL stays relative, and the served file set stays enumerable. Both are recorded in `specs/slice-01-grid-generator-solo.md` §2.
+**Why slice 5 is its own slice rather than part of the sync work.** It is the first slice that writes a row, and `CLAUDE.md` specifies a surface around that write which is larger than it looks: two lists with opposite rules (`MIGRATIONS` checksummed and applied once, `SEEDS` re-run on every press), an admin page that renders before login and before any table exists, drift reporting, a quote-aware statement splitter, and per-DO erase. JSON export and re-import are part of *this* slice, not a later one — erase is the schema-change path, so export must exist before the first erase, wired into the erase confirmation itself. Bundling all of that behind WebSocket hibernation work would mean debugging two hard things at once.
+
+Slice 8 is last by choice, not by dependency — solo play is entirely client-side, so it is offline-capable from slice 1 onward and the PWA slice only has to declare that. Two rules keep it cheap: every URL stays relative, and the served file set stays enumerable. Both are recorded in `specs/slice-01-grid-generator-solo.md` §2.
 
 Implementation specs for the spec'd slices are in `specs/`; open decisions and
 things needed from outside the code are in `specs/questions.md`.
@@ -185,4 +188,4 @@ Optional later addition: a "what technique applies here?" button running the §4
 - **Hibernation state loss** — the classic "works ~10 seconds then messages stop" bug. Mitigated by getting `serializeAttachment` right early. Build a two-tab reconnection test before building on top of the sync layer.
 - **Best-time noise** — puzzle-to-puzzle variance within a tier is large. Technique-based tiering (§4.3) reduces but does not eliminate it.
 - **Transfer gap** — static examples teach vocabulary, not recognition. Expected, not a defect. §7.3 is the mitigation if it matters.
-- **Scope** — six requirements, three of them (solver, sync, teaching) independently non-trivial. The slice order in §6 is designed so you can stop after step 5 and still have something the kids use.
+- **Scope** — six requirements, three of them (solver, sync, teaching) independently non-trivial. The slice order in §6 is designed so you can stop after step 4 and still have something the kids use.
