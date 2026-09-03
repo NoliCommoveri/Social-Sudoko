@@ -150,10 +150,11 @@ Rendered through the same board component as live play. Standard technique names
 3. Reduced logical solver + difficulty rating — core only, no UI
 4. Difficulty tiers, the picker, pencil marks (R3)
 5. Technique library (R6) + the hint button
-6. Storage foundation — the DO, the schema, migrations, the admin page, JSON export and re-import
-7. Timer + stats + best times (R5, R4) — first fully useful thing
-8. WebSocket sync + race mode (R1, R3)
-9. PWA — manifest, service worker, install to homescreen
+6. Storage foundation — the DO, the schema, migrations, the admin page
+7. Erase, JSON export, and re-import — completing the admin surface
+8. Timer + stats + best times (R5, R4) — first fully useful thing
+9. WebSocket sync + race mode (R1, R3)
+10. PWA — manifest, service worker, install to homescreen
 
 Slices 1–5 have no server dependency, and they ship R2 and R6 in full plus the tiering mechanism R3 rests on. R1, R4, and R5 all need the DO, because every stat this project keeps lives in DO SQLite (§4.6) and none of it is mirrored client-side. If Cloudflare setup stalls, what still ships is solo play at three sizes and three difficulties with the technique library — not four of six requirements.
 
@@ -161,9 +162,11 @@ Slices 1–5 have no server dependency, and they ship R2 and R6 in full plus the
 
 **Why hints are in step 5 rather than step 4.** A hint's teaching payoff is the link from a live board to the static example (§4.7), so the hint button and the library it links into are one piece of work. Step 5 is the only place in this order where the technique-library slice is no longer independent of the solver — by then the solver exists, which is why the dependency costs nothing.
 
-**Why slice 6 is its own slice rather than part of the sync work.** It is the first slice that writes a row, and `CLAUDE.md` specifies a surface around that write which is larger than it looks: two lists with opposite rules (`MIGRATIONS` checksummed and applied once, `SEEDS` re-run on every press), an admin page that renders before login and before any table exists, drift reporting, a quote-aware statement splitter, and per-DO erase. JSON export and re-import are part of *this* slice, not a later one — erase is the schema-change path, so export must exist before the first erase, wired into the erase confirmation itself. Bundling all of that behind WebSocket hibernation work would mean debugging two hard things at once.
+**Why the storage foundation is two slices, and why both come before the timer.** Step 6 is the first slice that writes a row, and `CLAUDE.md` specifies a surface around that write which is larger than it looks: two lists with opposite rules (`MIGRATIONS` checksummed and applied once, `SEEDS` re-run on every press), an admin page that renders before login and before any table exists, drift reporting, a quote-aware statement splitter, per-DO erase, and JSON export with re-import. That is more than one session, so it is cut — but not between erase and export, which `CLAUDE.md` binds together: erase is the schema-change path, so export must exist before the first erase and re-import alongside it, wired into the erase confirmation itself. The available cut is in front of all three. Step 6 stands up the DO, the schema, and apply/seed/status; step 7 adds erase, export, and import.
 
-Slice 9 is last by choice, not by dependency — solo play is entirely client-side, so it is offline-capable from slice 1 onward and the PWA slice only has to declare that. Two rules keep it cheap: every URL stays relative, and the served file set stays enumerable. Both are recorded in `specs/slice-01-grid-generator-solo.md` §2.
+What makes that cut safe is that there is one DO per family code: before erase exists, a schema change is a file edit plus an unused code, which is a database with no tables. That escape hatch expires the moment there is data worth keeping, which is why step 7 sits before the timer rather than after it. Bundling any of this behind WebSocket hibernation work would mean debugging two hard things at once.
+
+Slice 10 is last by choice, not by dependency — solo play is entirely client-side, so it is offline-capable from slice 1 onward and the PWA slice only has to declare that. Two rules keep it cheap: every URL stays relative, and the served file set stays enumerable. Both are recorded in `specs/slice-01-grid-generator-solo.md` §2.
 
 Implementation specs for the spec'd slices are in `specs/`; open decisions and
 things needed from outside the code are in `specs/questions.md`.

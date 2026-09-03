@@ -17,7 +17,7 @@ slice 3 rather than debug a search around a broken rating.
 Puzzles are dealt at a chosen difficulty. Every tier of a given deal shares one
 solution grid, so the same deal can be played by two people at two difficulties
 — which is the mechanism R3 depends on, even though nothing multiplayer exists
-until slice 8. Pencil marks exist.
+until slice 9. Pencil marks exist.
 
 Hints do not. They are slice 5, with the technique library they link into.
 
@@ -49,7 +49,7 @@ other two costs two more binary searches and throws both away.
 Because the seed fixes the chain, any other tier of the same deal is reproducible
 later — recompute `solution`, `base`, and `order` from the seed and run the
 search for the tier you now want. Nothing has to be stored to make the guarantee
-below hold across tiers computed at different times. Race mode (slice 8) needs
+below hold across tiers computed at different times. Race mode (slice 9) needs
 several tiers of one deal at once and pays for those searches when a session
 starts, once, off the interactive path.
 
@@ -130,7 +130,7 @@ mislabelled puzzles.
 - **Pencil marks.** Manual entry, plus a "fill all candidates" action.
   Auto-maintained marks — where entering a value clears it from peers — is an
   assist that hides the very deduction naked-pair teaches; the manual mode is the
-  default and the auto mode is a setting, off. Slice 7 counts it as an assist.
+  default and the auto mode is a setting, off. Slice 8 counts it as an assist.
 - **Persistence.** Pencil marks join the saved game under
   `sudoku.v1.game.<sizeKey>`; the tier choice joins `prefs` alongside `sizeKey`
   (slice 1 §5, slice 2). Both keys already have the shape for it. The saved-game
@@ -152,7 +152,7 @@ was always going to be paid.
    chain, not about what a given deal happened to ask for.
 2. **Reproducibility.** Computing tier `t` from a seed on its own gives the
    identical clue set as computing all three tiers from that seed and taking `t`.
-   This is what lets slice 8 recover the other tiers of a deal.
+   This is what lets slice 9 recover the other tiers of a deal.
 3. **Label honesty.** Every deal's returned `tier` equals `rate(clues)` — the
    label is what it rates, including on the retry-exhaustion path, where the
    returned tier is by definition not the one requested.
@@ -185,7 +185,7 @@ was always going to be paid.
 Criteria 5 and 6 are independent by construction and must stay that way. A deal
 computes one tier (§2), so the interactive budget does not scale with the number
 of tiers; separation is a property of the retry loop, measured in CI on a machine
-with no budget. The three-tier bulk computation that race mode needs is slice 8's
+with no budget. The three-tier bulk computation that race mode needs is slice 9's
 cost, paid once at session start behind a visible waiting state, not per deal.
 
 ### If the budget fails
