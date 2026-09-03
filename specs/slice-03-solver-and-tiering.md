@@ -7,8 +7,7 @@ on top of them, and a generation-time budget that could force a redesign. This
 is the slice that justifies the whole slice order — get it wrong and R3 does not
 work.
 
-**Blocked on:** nothing hard. Q5 (tier naming) wants D2 but does not block the
-code.
+**Blocked on:** nothing.
 
 **Assumes:** Q4 resolves as "pencil marks land here" — the naked-pair technique
 is unteachable and nearly unusable without them.
@@ -140,7 +139,14 @@ child that the labels are meaningless.
 
 ## 6. UI additions
 
-- **Difficulty picker** (Q5 naming), showing only reachable tiers per §5.
+- **Difficulty picker**, showing only reachable tiers per §5. Each button
+  carries both the difficulty and the technique it requires — "Medium / needs
+  naked pairs" — so the picker doubles as a table of contents for the technique
+  library. The players are 11, 12, and adult, all fluent readers, so the real
+  technique names go on the buttons rather than a simplified paraphrase beside
+  them; those names are what §4.7 makes searchable, and a child who reads
+  "pointing pair" on the button and then in the library has followed the link
+  themselves.
 - **Pencil marks** (Q4). Manual entry, plus a "fill all candidates" action.
   Auto-maintained marks — where entering a value clears it from peers — is an
   assist that hides the very deduction naked-pair teaches; the manual mode is
@@ -171,7 +177,7 @@ child that the labels are meaningless.
 5. Tier separation: at 9×9, ≥90% of deals produce three distinct clue counts.
    Below that, the tier search needs rework before this slice is done.
 6. Generation budget: a full three-tier 9×9 deal in **under 500ms** p95 on the
-   slowest D3 device. Hard fail above 2s.
+   Android phone. Hard fail above 2s.
 7. `rate` never returns a tier for a set the restricted solver did not actually
    finish.
 
