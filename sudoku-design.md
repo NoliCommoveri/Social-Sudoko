@@ -9,12 +9,11 @@ Status: design sketch. Everything below marked **Rec** is a recommendation with 
 | # | Requirement | Notes |
 |---|---|---|
 | R1 | Race mode (multiplayer) | Same puzzle, independent boards, first to finish |
-| R2 | Cooperative mode | Shape still open — see §7.1 |
-| R3 | 4×4, 6×6, 9×9 grids | Box shapes 2×2, 3w×2h, 3×3 |
-| R4 | Per-player difficulty on the same puzzle | Via clue-superset layering (§4.3) |
-| R5 | Win tracking | Per player, per mode, per grid size |
-| R6 | Solo timer mode with best times | Keyed by grid size × difficulty tier |
-| R7 | Technique teaching | Static curated examples, not live trace (§4.7) |
+| R2 | 4×4, 6×6, 9×9 grids | Box shapes 2×2, 3w×2h, 3×3 |
+| R3 | Per-player difficulty on the same puzzle | Via clue-superset layering (§4.3) |
+| R4 | Win tracking | Per player, per mode, per grid size |
+| R5 | Solo timer mode with best times | Keyed by grid size × difficulty tier |
+| R6 | Technique teaching | Static curated examples, not live trace (§4.7) |
 
 ---
 
@@ -99,19 +98,19 @@ Four techniques: naked single, hidden single, naked pair, pointing pair. Each re
 
 Deliberately excludes X-wing and everything past it. *Would revisit if:* the kids outgrow tier 3, which would be a good problem to have.
 
-Serves: difficulty rating, hints, and the optional "what applies here?" bridge (§7.4).
+Serves: difficulty rating, hints, and the optional "what applies here?" bridge (§7.3).
 
 ### 4.5 Session model
 
 ```
 Session {
-  familyCode, mode: race|coop|solo,
+  familyCode, mode: race|solo,
   gridSize, solutionGrid,
   players: [{ id, name, tier, board, assists, startedAt, finishedAt }]
 }
 ```
 
-Per-player board state is separate even in coop — see §7.1 for why that may or may not stay true.
+Per-player board state is separate, which is what lets players race the same puzzle at different tiers.
 
 ### 4.6 Stats store
 
@@ -120,7 +119,7 @@ DO SQLite. Two tables is enough:
 - `results(player, mode, gridSize, tier, won, durationMs, completedAt)`
 - `bests(player, gridSize, tier, durationMs)` — derived, or just query `results`
 
-R5 and R6 are both reads off this. Include JSON export from day one.
+R4 and R5 are both reads off this. Include JSON export from day one.
 
 ### 4.7 Technique library
 
@@ -136,11 +135,9 @@ Rendered through the same board component as live play. Standard technique names
 
 ## 5. Modes
 
-**Solo + timer (R6).** Simplest slice, no DO required at all — pure client plus a stats write. Reasonable first vertical slice.
+**Solo + timer (R5).** Simplest slice, no DO required at all — pure client plus a stats write. Reasonable first vertical slice.
 
 **Race (R1).** Shared puzzle, per-player tier, independent boards. DO broadcasts progress (cells-filled count, not contents) and finish events.
-
-**Coop (R2).** See open decision §7.1.
 
 ---
 
@@ -149,37 +146,27 @@ Rendered through the same board component as live play. Standard technique names
 1. Grid model + generator + solo play, one grid size — no timer, no server
 2. All three grid sizes
 3. Solver + tiering
-4. Timer + stats + best times (R6, R5 partial) — first fully useful thing
-5. Technique library (R7) — independent, parallelizable
-6. DO + WebSocket sync, race mode (R1, R4)
-7. Coop mode (R2) — last, because §7.1 is unresolved
+4. Timer + stats + best times (R5, R4 partial) — first fully useful thing
+5. Technique library (R6) — independent, parallelizable
+6. DO + WebSocket sync, race mode (R1, R3)
 
-Slices 1–5 have no server dependency. If Cloudflare setup stalls, four of seven requirements still ship.
+Slices 1–5 have no server dependency. If Cloudflare setup stalls, four of six requirements still ship.
 
 ---
 
 ## 7. Open decisions
 
-### 7.1 Coop shape
-
-Unresolved, and it affects the session model. Per-player difficulty via extra givens collapses on a shared board — everyone sees the same cells the moment it renders.
-
-- **Option A:** separate boards, synced progress (a cell correctly filled by one player fills for both). Preserves per-tier givens.
-- **Option B:** one shared board; differentiation moves to assist level (pencil marks, auto-check, hint budget).
-
-*Leaning A*, because it keeps R4 intact across both multiplayer modes and reuses the race-mode session model. But B is more genuinely collaborative — kids look at one board together. Worth testing A with the kids before committing.
-
-### 7.2 Identity
+### 7.1 Identity
 
 Family code + player name, no passwords, is probably right for a household. Tradeoff: anyone with the code is in, and name collisions overwrite stats. *Would revisit if:* the link ever leaves the family.
 
-### 7.3 No-guess lock
+### 7.2 No-guess lock
 
 Timed play rewards brute-force guess-and-undo, which cuts against the teaching goal. Options: a setting that rejects logically-undetermined entries, separate leaderboards for timed vs learning play, or accept it.
 
 *No recommendation yet* — depends on whether the kids actually do it. Cheap to add later.
 
-### 7.4 Live technique bridge
+### 7.3 Live technique bridge
 
 Optional later addition: a "what technique applies here?" button running the §4.4 solver, outputting technique name + highlighted cells, linked to the static example. No prose generation. Small, given the solver already exists.
 
@@ -189,5 +176,5 @@ Optional later addition: a "what technique applies here?" button running the §4
 
 - **Hibernation state loss** — the classic "works ~10 seconds then messages stop" bug. Mitigated by getting `serializeAttachment` right early. Build a two-tab reconnection test before building on top of the sync layer.
 - **Best-time noise** — puzzle-to-puzzle variance within a tier is large. Technique-based tiering (§4.3) reduces but does not eliminate it.
-- **Transfer gap** — static examples teach vocabulary, not recognition. Expected, not a defect. §7.4 is the mitigation if it matters.
-- **Scope** — seven requirements, three of them (solver, sync, teaching) independently non-trivial. The slice order in §6 is designed so you can stop after step 5 and still have something the kids use.
+- **Transfer gap** — static examples teach vocabulary, not recognition. Expected, not a defect. §7.3 is the mitigation if it matters.
+- **Scope** — six requirements, three of them (solver, sync, teaching) independently non-trivial. The slice order in §6 is designed so you can stop after step 5 and still have something the kids use.
