@@ -62,28 +62,60 @@ half-refactored module across a session break.
 
 ## No CLI
 
-There is no local command line on the dev machine. No `wrangler`, no `npm`, no
-`git` on the user's side.
+There is no local command line. No `wrangler`, no `npm`, no `git` on the user's
+side. Nothing in setup, migration, seeding, or deploy may require a CLI command.
+If a solution needs `wrangler d1 execute` or its DO equivalent, it is not a
+solution.
 
-**All schema migrations run in the browser.** Consequences:
+Follow the Globetrotters pattern (`NoliCommoveri/Globetrotters`,
+`src/lib/migrations.js` + `src/migrations/index.js`), not the Heritage-Hooves
+append-only one. Heritage-Hooves carries 140+ forward-only files because its
+data cannot be regenerated; this project's can be, with the one exception noted
+below.
 
-- Migrations are application code, not `.sql` files run by a tool. They ship
-  with the app and execute against the Durable Object's SQLite from a request
-  path.
-- Keep a `schema_version` row in DO storage. On the first request after a
-  deploy, compare it to the code's target version and apply each pending
-  migration in order inside one transaction, then update the version.
-- Migrations are forward-only and idempotent. `CREATE TABLE IF NOT EXISTS`,
-  `ALTER TABLE ... ADD COLUMN` guarded by a version check. No down-migrations —
-  there is no way to run one.
-- Never write a step that requires a human to run a command to complete or
-  recover. If a migration can fail halfway, it is wrong; make it a single
-  transaction or split it into two deploys.
-- Provide a browser-reachable way to read schema state and stats (an admin route
-  or a debug panel). Inspecting the database is otherwise impossible.
-- The JSON export in `sudoku-design.md` §4.6 is the only backup mechanism. Treat
-  it as load-bearing, not a nice-to-have, and export before any migration that
-  drops or rewrites data.
+**Two lists, opposite rules.** One module is the only place `.sql` is imported,
+and it exports both:
+
+- `MIGRATIONS` — schema. Checksummed, applied once by **Apply pending**. An edit
+  after it has run shows as *drift* on the admin page and is never silently
+  reapplied.
+- `SEEDS` — data. Every insert is `ON CONFLICT DO NOTHING`, and **Run seed**
+  re-executes the whole list on every press. Seeds are never checksummed; that
+  is what lets a puzzle bank or technique-library file grow by editing it in the
+  GitHub web editor.
+
+**Clear/delete is the schema-change path.** Do not write an `ALTER` chain.
+Editing `001_schema.sql` in place and pressing **Erase everything** → **Apply
+pending** → **Run seed** is the normal way to change the schema. Erase drops
+every table including the migration ledger, so the edited file is pending again
+and the database rebuilds from the files as they now read. Discover drop order
+by retrying until a pass drops nothing new — do not hardcode it.
+
+**Admin surface.** Three buttons plus a status table (applied / pending /
+drifted), reachable in a browser, rendering before login and before any table
+exists — a fresh database has neither. Show the failing statement and its error
+on the page; there is no other way to see it. Model it on Globetrotters'
+`/admin` and Heritage-Hooves' `src/render/migrations.ts`, which handles the
+no-tables-yet case.
+
+**Where this project differs from both references.** Globetrotters can erase
+freely because it holds no data that cannot be got back. This one does: win
+history and best times (design §4.6) are exactly that. So the JSON export is
+the precondition for Erase everything, not a nice-to-have — export must be
+implemented before the first erase, and re-import must exist alongside it. Wire
+the export into the erase confirmation itself rather than trusting anyone to
+remember.
+
+**DO SQLite is not D1.** `ctx.storage.transactionSync()` gives real atomic
+transactions, so the D1 trap the reference repos work around — no transaction
+spanning batches, a half-applied migration fixable only by a new file — does not
+apply. Run each migration in one transaction and it either lands or does not.
+Keep the chunking and the quote-aware statement splitter; drop the
+partial-failure ceremony.
+
+Erase is per Durable Object, and there is one DO per family code (design §2).
+The admin page acts on the room it is opened against — if more than one family
+code ever exists, it must say which room it is about to erase.
 
 Deployment is likewise not a CLI step. `sudoku-design.md` §2 says "one
 `wrangler deploy`" — that line needs replacing with whatever the actual path is
