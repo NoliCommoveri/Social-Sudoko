@@ -10,34 +10,40 @@ live only as the one-line entry in §6.
 | 2 | [`slice-02-three-grid-sizes.md`](slice-02-three-grid-sizes.md) | Small | Spec'd, not started |
 | 3 | [`slice-03-solver-and-rating.md`](slice-03-solver-and-rating.md) | Medium | Spec'd, not started |
 | 4 | [`slice-04-difficulty-tiers.md`](slice-04-difficulty-tiers.md) | Medium | Spec'd, not started |
-| 5 | Technique library + hints | — | Not spec'd |
-| 6 | Storage foundation — DO, migrations, admin page, export/import | — | Not spec'd |
-| 7 | Timer + stats + best times | — | Not spec'd |
-| 8 | WebSocket sync + race mode | — | Not spec'd |
-| 9 | PWA | — | Not spec'd |
+| 5 | [`slice-05-technique-library-hints.md`](slice-05-technique-library-hints.md) | Medium | Spec'd, not started |
+| 6 | [`slice-06-storage-foundation.md`](slice-06-storage-foundation.md) | Medium | Spec'd, not started |
+| 7 | Erase, JSON export, re-import | — | Not spec'd |
+| 8 | Timer + stats + best times | — | Not spec'd |
+| 9 | WebSocket sync + race mode | — | Not spec'd |
+| 10 | PWA | — | Not spec'd |
 
 No slice is estimated above Medium. `CLAUDE.md` caps a session at ~120k tokens
 and says a Large slice should be split rather than started; a spec that comes out
-Large is a spec that has not been cut yet. Slices 3 and 4 were one Large slice —
-the cut is described in `slice-03-solver-and-rating.md` §1.
+Large is a spec that has not been cut yet. Two slices in this table are halves of
+one that was: slices 3 and 4, cut as described in
+`slice-03-solver-and-rating.md` §1, and slices 6 and 7, cut as described in
+`slice-06-storage-foundation.md` §1.
 
-Slice 6 is the first slice that writes a row, and everything `CLAUDE.md` says
-about migrations, seeds, the admin page, drift, erase, and JSON export belongs to
-it. Slice 7 is the first slice that depends on it. Nothing before slice 6 stores
-anything a player would miss (`questions.md` Q7).
+Slice 6 is the first slice with a server in it and the first that writes a row.
+Everything `CLAUDE.md` says about migrations, seeds, the admin page, drift,
+erase, and JSON export belongs to slices 6 and 7 together, and slice 8 is the
+first slice that depends on either. Nothing before slice 6 stores anything a
+player would miss (`questions.md` Q7).
 
 All open items live in [`questions.md`](questions.md): `S`* (a setup task only
 you can do, in a browser), `D`* (a due out — needs information I do not have),
 and `Q`* (an open question where I have a recommendation and will build it
 unless you say otherwise). Slice files reference those IDs rather than restating
-them. No due outs are currently open.
+them. One due out is open: `D1`, the family code and the players' names, which
+slice 6 seeds. It does not block that slice.
 
 **Anything a slice cannot verify on its own is an `S`* item, not a line in that
 slice's acceptance criteria.** Timing on the phone, a touch layout, a
 keyboard-only run, a deployed URL — none of those can be closed by CI or by me,
 and a criterion nobody owns is a criterion that gets assumed. S1 connects the
 repo to Cloudflare; S2 is slice 1's four device checks. Slice 4's generation
-budget will need the same treatment when that slice starts.
+budget, slice 5's library legibility on the phone, and slice 6's six
+deployment checks each need the same treatment when that slice starts.
 
 ## Conventions these specs assume
 
@@ -47,7 +53,10 @@ from taste, so changing one is a project-level decision, not a slice-level one.
 - **No build step.** Source is plain ES modules loaded directly by the browser.
   No bundler, no transpile, no TypeScript, no npm dependency at runtime. This is
   a consequence of "no CLI": anything requiring `npm run build` before the site
-  works cannot be driven from the GitHub web editor.
+  works cannot be driven from the GitHub web editor. It is a rule about
+  `public/`. The Worker script added in slice 6 is bundled by `wrangler` on
+  Cloudflare's build machine, is never served, and does not relax this for a
+  single client file — `slice-06-storage-foundation.md` §2 draws the line.
 - **No runtime dependencies.** Zero. Everything in `public/src/` is written here.
 - **Pure core.** `public/src/core/` never touches the DOM, `window`, or storage. It is
   importable by both the browser and the CI test runner, which is what lets the

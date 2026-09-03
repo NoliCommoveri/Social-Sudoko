@@ -73,7 +73,23 @@ dashboard action.
 
 ## Due outs
 
-None open.
+### D1 — The family code, and the players' names
+
+Slice 6 seeds a `players` table and its admin page is opened at
+`/r/<code>/admin`. Both need values I do not have.
+
+- **The family code.** Lowercase, `[a-z0-9-]`, 3–32 characters. Anyone holding
+  it is in and, from slice 7, can erase the room (§7.1). So not `sudoku`, and
+  not your surname on its own.
+- **The names**, spelled as they should appear on a leaderboard. One row per
+  name is the whole of identity in this project — two people cannot both be
+  "mum", because the second one inherits the first one's best times.
+
+**This does not block slice 6.** It commits placeholder names, and your answer
+is delivered by editing `src/db/sql/seed_players.sql` in the GitHub web editor
+and pressing **Run seed** — which is the exact workflow seeds exist for, so
+answering this late is a demonstration rather than a cost. The only residue is a
+placeholder row per unused name, cleared by slice 7's erase.
 
 ---
 
@@ -110,8 +126,8 @@ is exactly the failure §7.2 is worried about. On-completion-only is punishing
 for a beginner who went wrong forty moves back. The check button puts the cost
 of guessing on the player's own decision to press it.
 
-Slice 7 should count check presses as an assist and keep them out of best times,
-but that is slice 7's problem and I will spec it there.
+Slice 8 should count check presses as an assist and keep them out of best times,
+but that is slice 8's problem and I will spec it there.
 
 ### Q4 — Pencil marks in slice 1?
 
@@ -139,9 +155,9 @@ Slices 1–5 have no server. Something still needs to survive a closed tab.
 **Rec:** `localStorage` holds the in-progress board and UI preferences only.
 Explicitly **not** best times or win counts, even though slice 1 could trivially
 write them. Those are `results` / `bests` rows in DO SQLite (§4.6), and writing
-them to `localStorage` first means slice 7 opens with a data migration and a
+them to `localStorage` first means slice 8 opens with a data migration and a
 "which copy is authoritative" question for no gain. Timing does not exist until
-slice 7.
+slice 8.
 
 *Consequence, and the reason this is the recommendation rather than the obvious
 choice:* it makes R4 and R5 depend on the DO, so the timer slice sits after the
@@ -153,13 +169,13 @@ migration.
 ### Q8 — Custom domain?
 
 **Rec: `social-sudoko.<your-subdomain>.workers.dev`, no custom domain.** Free,
-instant, HTTPS, and it satisfies the PWA install requirement in slice 9. Adding
+instant, HTTPS, and it satisfies the PWA install requirement in slice 10. Adding
 a domain later is a dashboard action with no code impact, so this decision costs
 nothing to defer.
 
 ### Q9 — PWA icons
 
-Slice 9 needs real icon files at 192px and 512px, plus a maskable variant.
+Slice 10 needs real icon files at 192px and 512px, plus a maskable variant.
 
 **Rec:** I generate a plain glyph — a 3×3 box with a few filled cells — and
 commit the PNGs. Replace them whenever; they are two files and one manifest

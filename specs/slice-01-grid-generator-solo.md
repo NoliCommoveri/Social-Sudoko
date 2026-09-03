@@ -77,16 +77,16 @@ would publish them.
 Assets-only; there is no Worker script until slice 6, which adds `main` and the
 Durable Object binding to this same file.
 
-### Two constraints that exist now to keep slice 9 cheap
+### Two constraints that exist now to keep slice 10 cheap
 
-The PWA slice is last, and everything it needs is free if slices 1–8 respect
+The PWA slice is last, and everything it needs is free if slices 1–9 respect
 two rules and expensive to retrofit if they do not.
 
 - **Every URL is relative.** No absolute paths, no origin-qualified URLs, no
   CDN. A service worker precaching an absolute path that later moves is the
   standard way to ship an app that will not update.
 - **The served file set stays enumerable.** No dynamic `import()` of a computed
-  path. Slice 9's service worker precaches an explicit list, and a list it
+  path. Slice 10's service worker precaches an explicit list, and a list it
   cannot be checked against is a list that goes stale.
 
 ## 3. Representation
@@ -227,7 +227,7 @@ Chromebook has a keyboard and typing is faster than tapping, the phone does not.
 - **Check** (Q3) marks currently-wrong cells against the solution. Marks clear
   on the next edit.
 - **Completion** is detected on every edit: board full and equal to the
-  solution. Says so. Records nothing — there is nothing to record until slice 7.
+  solution. Says so. Records nothing — there is nothing to record until slice 8.
 
 ### `store/local.js`
 
