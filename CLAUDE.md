@@ -27,9 +27,10 @@ Rationale stays only where it prevents someone re-litigating a settled choice
 (the `Rec` / *Alternative* / *Would revisit if* pattern in `sudoku-design.md` is
 current-state, not history — keep it).
 
-Revision history, if wanted, lives in `HISTORY.md`, which is **read only when
-troubleshooting** — an unexplained behavior, a regression, a "why is this like
-this." Do not read it at session start. Do not consult it for routine feature
+Revision history, removed features, and parked decisions live in `HISTORY.md`,
+which is **read only when troubleshooting** — an unexplained behavior, a
+regression, a "why is this like this" — or when deliberately reopening a parked
+decision. Do not read it at session start. Do not consult it for routine feature
 work.
 
 ## Session effort budgeting
