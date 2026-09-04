@@ -184,7 +184,7 @@ CREATE TABLE IF NOT EXISTS players (
 );
 
 CREATE TABLE IF NOT EXISTS results (
-  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  game_id       TEXT    PRIMARY KEY,          -- client-generated, one per deal
   player        TEXT    NOT NULL REFERENCES players(name),
   mode          TEXT    NOT NULL,           -- 'solo' | 'race'
   size_key      INTEGER NOT NULL,           -- 4 | 6 | 9
@@ -209,6 +209,15 @@ CREATE INDEX IF NOT EXISTS results_best
   shape of a row, and a slice whose job is to write rows should not also be
   changing the schema. Slice 5 produces `hints` and `hints_applied`; Q3 produces
   `checks`.
+- **`results` is keyed by `game_id`, not by a surrogate**, for the same reason
+  and with three consequences that all land in later slices. `game_id` is minted
+  by the client when it deals a puzzle, so it means the same thing in two
+  databases: slice 7's import dedupes on it (§5 there) and slice 8's result POST
+  is idempotent under retry without inventing a mechanism (§5 there). An
+  `AUTOINCREMENT` surrogate would be a fact about one database, would have to be
+  stripped on export and reassigned on import, and would leave nothing to dedupe
+  on. It also creates `sqlite_sequence`, an undroppable table slice 7's erase
+  loop would have to special-case.
 - **`size_key` is data, not a dimension.** `no-hardcoded-sizes.test.js` reads
   `public/src/core/` and does not read `.sql`, nor should it: the `4 | 6 | 9`
   comment documents an enum stored in a column. Written here once so nobody

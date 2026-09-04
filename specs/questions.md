@@ -91,6 +91,11 @@ and pressing **Run seed** — which is the exact workflow seeds exist for, so
 answering this late is a demonstration rather than a cost. The only residue is a
 placeholder row per unused name, cleared by slice 7's erase.
 
+**Slice 8 is where it starts to cost something.** That slice puts a name on a
+leaderboard and refuses one that is not seeded (`Q11`), so an unanswered D1
+means the first best time is recorded against a placeholder. Answer it before
+slice 8, not before slice 6.
+
 ---
 
 ## Open questions
@@ -181,3 +186,44 @@ Slice 10 needs real icon files at 192px and 512px, plus a maskable variant.
 commit the PNGs. Replace them whenever; they are two files and one manifest
 entry. Say so if one of the kids would rather draw it, which is a better answer
 than mine.
+
+### Q10 — Which assists disqualify a best time?
+
+Slice 5 §5 deferred this here, and slice 8 §6 is where it is spent. Four numbers
+exist on every completed game: `hints` (a technique named), `hintsApplied` (a
+step performed for you), `checks` (Q3's button pressed), and `autoMarks` (slice
+4's auto-maintained pencil marks, which do the naked-pair bookkeeping for you).
+
+**Rec: applied hints, checks, and auto marks disqualify. Naming a technique does
+not.**
+
+The split is deliberate and it is the one thing worth arguing about here. Slice
+5 built the hint as three separate presses precisely so a child could ask "what
+applies here?", read the library entry, and then find the cells themselves —
+that is the teaching the whole slice exists for, and charging a best time for it
+would train them out of it inside a week. The other three all do part of the
+puzzle: applying places the digit, check locates the mistake, auto marks
+maintain the candidate sets that tier 2 is about noticing.
+
+Every result is recorded either way, and the stats page shows the assisted best
+beside the clean one (slice 8 §6), so nothing is hidden — the question is only
+which number is the record.
+
+*Would revisit if:* naming turns out to be enough to solve with, i.e. someone
+sets a clean record while pressing hint on every cell. That is visible in the
+`hints` column without any change to anything.
+
+### Q11 — An unknown player name: refuse, or create the row?
+
+Slice 8 asks the player to pick a name, and the list comes from the `players`
+table.
+
+**Rec: refuse.** A typed name that creates a row means "Ellie", "ellie", and
+"Elie" are three players with three sets of best times, permanently, and the
+first anyone notices is when a record goes missing. Refusing costs a seed-file
+edit and one press of **Run seed** — the workflow D1 is already delivered
+through — and the refusal message says exactly that.
+
+*Alternative:* auto-create and let a later slice merge duplicates. *Would
+revisit if:* someone outside the household ever plays, which §7.1 says is not
+what the family code is for.

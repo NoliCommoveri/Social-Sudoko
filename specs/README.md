@@ -12,8 +12,8 @@ live only as the one-line entry in §6.
 | 4 | [`slice-04-difficulty-tiers.md`](slice-04-difficulty-tiers.md) | Medium | Spec'd, not started |
 | 5 | [`slice-05-technique-library-hints.md`](slice-05-technique-library-hints.md) | Medium | Spec'd, not started |
 | 6 | [`slice-06-storage-foundation.md`](slice-06-storage-foundation.md) | Medium | Spec'd, not started |
-| 7 | Erase, JSON export, re-import | — | Not spec'd |
-| 8 | Timer + stats + best times | — | Not spec'd |
+| 7 | [`slice-07-erase-export-import.md`](slice-07-erase-export-import.md) | Medium | Spec'd, not started |
+| 8 | [`slice-08-timer-stats-best-times.md`](slice-08-timer-stats-best-times.md) | Medium | Spec'd, not started |
 | 9 | WebSocket sync + race mode | — | Not spec'd |
 | 10 | PWA | — | Not spec'd |
 
@@ -30,6 +30,14 @@ erase, and JSON export belongs to slices 6 and 7 together, and slice 8 is the
 first slice that depends on either. Nothing before slice 6 stores anything a
 player would miss (`questions.md` Q7).
 
+**Slice 8 is where the schema stops being free.** Slices 6 and 7 may edit
+`001_schema.sql` in place at no cost — slice 6 because an unused family code is
+a database with no tables, slice 7 because no `results` row exists yet. Both do,
+and both say what they changed and why they changed it there. From slice 8 on,
+the same edit is still the sanctioned path but costs an export and an import,
+and a new `NOT NULL` column with no default stops being a schema edit and
+becomes data loss (slice 7 §5, slice 8 §3).
+
 All open items live in [`questions.md`](questions.md): `S`* (a setup task only
 you can do, in a browser), `D`* (a due out — needs information I do not have),
 and `Q`* (an open question where I have a recommendation and will build it
@@ -42,8 +50,9 @@ slice's acceptance criteria.** Timing on the phone, a touch layout, a
 keyboard-only run, a deployed URL — none of those can be closed by CI or by me,
 and a criterion nobody owns is a criterion that gets assumed. S1 connects the
 repo to Cloudflare; S2 is slice 1's four device checks. Slice 4's generation
-budget, slice 5's library legibility on the phone, and slice 6's six
-deployment checks each need the same treatment when that slice starts.
+budget, slice 5's library legibility on the phone, slice 6's six deployment
+checks, slice 7's eight round-trip checks, and slice 8's finish-on-a-real-phone
+checks each need the same treatment when that slice starts.
 
 ## Conventions these specs assume
 
