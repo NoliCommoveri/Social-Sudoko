@@ -7,7 +7,7 @@ export const SIZES = {
   9: { n: 9, boxW: 3, boxH: 3 },
 };
 
-// The size the UI deals until slice 2 adds the picker.
+// The size dealt when no size preference has been stored yet.
 export const DEFAULT_SIZE_KEY = 9;
 
 export const SIZE_KEYS = Object.keys(SIZES).map(Number);

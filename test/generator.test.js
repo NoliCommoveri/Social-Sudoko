@@ -81,20 +81,26 @@ test('countSolutions on a board with two peers sharing a value is 0', () => {
   assert.equal(countSolutions(geom, values, 2), 0);
 });
 
+// Every size, not just 9x9. 4x4 is the hard case for the uniqueness check
+// rather than the easy one: with only 288 valid grids a solution counter that
+// is subtly wrong shows up here as a puzzle with two solutions.
 test('carve output is uniquely solvable, and a subset of its solution', () => {
-  const geom = makeGeometry(SIZES[9]);
-  for (let seed = 1; seed <= CARVE_SEEDS; seed++) {
-    const rng = mulberry32(seed);
-    const solution = fillComplete(geom, rng);
-    const givens = carve(geom, solution, rng);
+  for (const size of allSizes) {
+    const geom = makeGeometry(size);
+    for (let seed = 1; seed <= CARVE_SEEDS; seed++) {
+      const rng = mulberry32(seed);
+      const solution = fillComplete(geom, rng);
+      const givens = carve(geom, solution, rng);
+      const where = `size ${size.n}, seed ${seed}`;
 
-    assert.equal(countSolutions(geom, givens, 2), 1, `seed ${seed} is not unique`);
-    for (let cell = 0; cell < geom.cellCount; cell++) {
-      if (givens[cell] !== 0) {
-        assert.equal(givens[cell], solution[cell], `seed ${seed}, cell ${cell} disagrees`);
+      assert.equal(countSolutions(geom, givens, 2), 1, `${where} is not unique`);
+      for (let cell = 0; cell < geom.cellCount; cell++) {
+        if (givens[cell] !== 0) {
+          assert.equal(givens[cell], solution[cell], `${where}, cell ${cell} disagrees`);
+        }
       }
+      assert.ok(givens.some((value) => value === 0), `${where} removed nothing`);
     }
-    assert.ok(givens.some((value) => value === 0), `seed ${seed} removed nothing`);
   }
 });
 

@@ -24,11 +24,15 @@ export function createBoard({ root, geom, onSelect, onSet }) {
     el.className = 'cell';
     el.dataset.cell = String(cell);
     el.setAttribute('role', 'gridcell');
-    // Box borders come from boxW/boxH, so 6x6 needs no change here.
-    if (geom.colOf[cell] % geom.boxW === 0) el.classList.add('box-left');
-    if (geom.rowOf[cell] % geom.boxH === 0) el.classList.add('box-top');
-    if (geom.colOf[cell] === geom.n - 1) el.classList.add('box-right');
-    if (geom.rowOf[cell] === geom.n - 1) el.classList.add('box-bottom');
+    // Two different things, kept apart. box-* is an internal box boundary and
+    // comes from the geometry's boxW/boxH — which is what makes 6x6's 3x2 box
+    // fall out of the same code as 9x9's 3x3. edge-* is the outer frame's
+    // right and bottom, which have to live on cells because the board element
+    // only draws its top and left.
+    if (geom.boxEdgeRight[cell]) el.classList.add('box-right');
+    if (geom.boxEdgeBottom[cell]) el.classList.add('box-bottom');
+    if (geom.colOf[cell] === geom.n - 1) el.classList.add('edge-right');
+    if (geom.rowOf[cell] === geom.n - 1) el.classList.add('edge-bottom');
     root.append(el);
     cells.push(el);
   }

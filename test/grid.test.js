@@ -70,6 +70,55 @@ test('boxes tile the grid: each box is a boxW x boxH rectangle', () => {
   }
 });
 
+// The heavy rules a board draws: a cell carries one when the next column or
+// row starts a new box. The outer frame is not a box edge — the board element
+// draws its top and left, and board.js puts the other two on the last column
+// and row — so these flags stop short of it.
+test('box edges fall where a box ends, never at the grid edge', () => {
+  for (const size of allSizes) {
+    const geom = makeGeometry(size);
+    for (let cell = 0; cell < geom.cellCount; cell++) {
+      const col = geom.colOf[cell];
+      const row = geom.rowOf[cell];
+      const right = (col + 1) % geom.boxW === 0 && col !== geom.n - 1;
+      const bottom = (row + 1) % geom.boxH === 0 && row !== geom.n - 1;
+      assert.equal(Boolean(geom.boxEdgeRight[cell]), right, `size ${geom.n}, cell ${cell} right`);
+      assert.equal(Boolean(geom.boxEdgeBottom[cell]), bottom, `size ${geom.n}, cell ${cell} bottom`);
+    }
+  }
+});
+
+// Written out by index rather than derived, because the off-by-one this catches
+// is one a derived expectation would repeat. 6x6 is the size that has it: boxes
+// 3 wide and 2 tall, so one internal column rule and two internal row rules,
+// which is neither the same column count nor the same row count.
+test('6x6 box edges are exactly these cells', () => {
+  const geom = makeGeometry(SIZES[6]);
+  const withRight = [];
+  const withBottom = [];
+  for (let cell = 0; cell < geom.cellCount; cell++) {
+    if (geom.boxEdgeRight[cell]) withRight.push(cell);
+    if (geom.boxEdgeBottom[cell]) withBottom.push(cell);
+  }
+  assert.deepEqual(withRight, [2, 8, 14, 20, 26, 32]);
+  assert.deepEqual(withBottom, [6, 7, 8, 9, 10, 11, 18, 19, 20, 21, 22, 23]);
+});
+
+test('4x4 and 9x9 box edges are exactly these columns and rows', () => {
+  const columnsAndRows = (sizeKey) => {
+    const geom = makeGeometry(SIZES[sizeKey]);
+    const cols = new Set();
+    const rows = new Set();
+    for (let cell = 0; cell < geom.cellCount; cell++) {
+      if (geom.boxEdgeRight[cell]) cols.add(geom.colOf[cell]);
+      if (geom.boxEdgeBottom[cell]) rows.add(geom.rowOf[cell]);
+    }
+    return [[...cols].sort(), [...rows].sort()];
+  };
+  assert.deepEqual(columnsAndRows(4), [[1], [1]]);
+  assert.deepEqual(columnsAndRows(9), [[2, 5], [2, 5]]);
+});
+
 test('makeGeometry memoizes per size', () => {
   for (const size of allSizes) {
     assert.equal(makeGeometry(size), makeGeometry({ ...size }));

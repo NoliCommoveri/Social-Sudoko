@@ -29,7 +29,14 @@ breaks here, which is why 6×6 is the size worth testing hardest.
 Border rule, stated once: a cell gets a heavy right border when
 `(col + 1) % boxW === 0` and it is not the last column; a heavy bottom border
 when `(row + 1) % boxH === 0` and it is not the last row. At 6×6 that is column
-2, and rows 1 and 3.
+2, and rows 1 and 3. Those two flags are geometry, computed in `grid.js` beside
+`rowOf`/`colOf` so they can be asserted without a DOM.
+
+The grid's outer frame is a separate thing and is drawn separately: the board
+element carries its top and left, and the last column and row carry its right
+and bottom. Keeping the frame out of the box flags is what lets the rule above
+be tested as stated rather than as "box edges, plus the two sides that happen to
+be drawn on cells".
 
 ### Layout
 
@@ -43,7 +50,10 @@ layout cases.
 
 ### Persistence
 
-Nothing changes in `store/local.js`. Slice 1 already writes
+`store/local.js` gains one thing: the save debounce can be flushed. Switching
+size has to land the board being left before the board being opened is read
+back, or a save still inside the 200ms window is read as the old state. The keys
+are untouched — slice 1 already writes
 `sudoku.v1.game.<sizeKey>` (slice 1 §5) with only `9` in use, so switching to
 6×6 and back does not destroy an in-progress 9×9 and there is no key to migrate.
 Had slice 1 written a single unsuffixed key, this slice would be silently
