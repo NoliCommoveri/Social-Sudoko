@@ -1,29 +1,13 @@
 // Fill, count solutions, carve. One search backs all three: MRV cell ordering
 // over incrementally maintained candidate masks, with the value order shuffled
 // when an rng is supplied and left in index order when it is not.
+//
+// `deal` adds a fourth step, `ease`, which lives in openness.js: carving alone
+// produces a puzzle nobody in this family can solve.
 
 import { mulberry32, shuffled } from './rng.js';
-
-function popcount(mask) {
-  let m = mask;
-  let count = 0;
-  while (m) {
-    m &= m - 1;
-    count++;
-  }
-  return count;
-}
-
-function valuesIn(mask) {
-  const out = [];
-  let m = mask;
-  while (m) {
-    const low = m & -m;
-    out.push(31 - Math.clz32(low) + 1);
-    m ^= low;
-  }
-  return out;
-}
+import { popcount, valuesIn, seedCandidates } from './candidates.js';
+import { ease } from './openness.js';
 
 // Places `value` in `cell`, clearing its bit from every empty peer that still
 // carries it. `trail` collects those peers so the move can be taken back.
@@ -79,23 +63,6 @@ function search(geom, values, cands, rng, cap) {
     unassign(geom, values, cands, best, prevMask, value, trail);
   }
   return total;
-}
-
-// Seeds candidate masks from the filled cells. Returns false if two peers
-// already hold the same value, which is a board with no solutions at all.
-function seedCandidates(geom, values, cands) {
-  cands.fill(geom.ALL);
-  for (let cell = 0; cell < geom.cellCount; cell++) {
-    const value = values[cell];
-    if (value === 0) continue;
-    const bit = 1 << (value - 1);
-    cands[cell] = 0;
-    for (const peer of geom.peersOf[cell]) {
-      if (values[peer] === value) return false;
-      cands[peer] &= ~bit;
-    }
-  }
-  return true;
 }
 
 /**
@@ -156,6 +123,14 @@ export function carve(geom, solution, rng) {
  * A whole puzzle from one seed. Deterministic: the same seed and size always
  * give the same givens and the same solution.
  *
+ * `carve` alone returns a minimal clue set, which is the hardest puzzle its
+ * solution grid can make and routinely not solvable by singles at all. `ease`
+ * then adds clues back until the board solves by singles with `geom.openness`
+ * cells findable in every round — the players are children and this is meant to
+ * be a low-stress game, so the dealt puzzle is the open one, not the minimal
+ * one. The clue set is a superset of a uniquely solvable one and agrees with
+ * `solution`, so it is still uniquely solvable.
+ *
  * @param {object} geom
  * @param {number} seed
  * @returns {{ seed: number, solution: Uint8Array, givens: Uint8Array }}
@@ -163,6 +138,7 @@ export function carve(geom, solution, rng) {
 export function deal(geom, seed) {
   const rng = mulberry32(seed);
   const solution = fillComplete(geom, rng);
-  const givens = carve(geom, solution, rng);
+  const base = carve(geom, solution, rng);
+  const givens = ease(geom, solution, base, rng, geom.openness);
   return { seed, solution, givens };
 }

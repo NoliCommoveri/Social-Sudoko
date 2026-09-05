@@ -2,9 +2,9 @@
 // core/ derives its numbers from a geometry built out of one of these.
 
 export const SIZES = {
-  4: { n: 4, boxW: 2, boxH: 2 },
-  6: { n: 6, boxW: 3, boxH: 2 },
-  9: { n: 9, boxW: 3, boxH: 3 },
+  4: { n: 4, boxW: 2, boxH: 2, openness: 6 },
+  6: { n: 6, boxW: 3, boxH: 2, openness: 6 },
+  9: { n: 9, boxW: 3, boxH: 3, openness: 6 },
 };
 
 // The size dealt when no size preference has been stored yet.
