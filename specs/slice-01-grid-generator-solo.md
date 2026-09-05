@@ -50,6 +50,7 @@ public/               the assets directory — everything here is served
       generator.js    fill, count solutions, carve
     ui/
       board.js        render + input for one board
+      board.css       board and cell rules, shared by index.html and dev.html
       app.js          wiring, new-game, completion
     store/
       local.js        localStorage read/write, versioned per-size keys
@@ -59,6 +60,11 @@ test/                 not served
   no-hardcoded-sizes.test.js
 .github/workflows/test.yml
 ```
+
+The board's own CSS is a file rather than a `<style>` block because both
+`index.html` and `dev.html` render boards, and the box-border rules are exactly
+what slice 2 has to change. Everything else stays inline in the page that uses
+it.
 
 Everything served lives under `public/`. Nothing else does — the repo's docs and
 tests must not be published, and an assets directory pointed at the repo root
@@ -208,11 +214,20 @@ about 38px per cell after padding — under the 44px touch-target guideline, but
 acceptable for a grid where a mis-tap is one undo away, and the alternative is
 scrolling a sudoku board.
 
-- **Narrow (phone, portrait):** board at full viewport width, number pad in a
-  row beneath it. Not beside — there is no room.
-- **Wide (Chromebook, phone landscape):** pad beside the board.
+- **Narrow (phone, portrait):** board at full viewport width, keypad beneath it.
+  Not beside — there is no room.
+- **Wide (Chromebook, phone landscape):** keypad beside the board.
 
-One container query switches between them. Cell font size scales with cell size.
+One container query switches between them, and that is all it switches: the
+keypad itself is the same shape at both widths. Cell font size scales with cell
+size.
+
+The keypad is a calculator block, not a strip: `boxW` columns of digits, with
+erase, undo and redo stacked in the column beside them, then check and new game
+each spanning the full width beneath. At 9×9 the digits are a 3×3 square and the
+action column is exactly as tall. Every key is placed from the geometry rather
+than from a literal, so 6×6 and 4×4 get the same arrangement with fewer digit
+columns — `app.js` computes the placement, the CSS only reads `--pad-cols`.
 
 Both input paths are first-class rather than one being a fallback: the
 Chromebook has a keyboard and typing is faster than tapping, the phone does not.

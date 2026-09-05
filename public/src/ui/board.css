@@ -1,0 +1,45 @@
+/* Board rendering, shared by index.html and dev.html so the box-border rules
+   slice 2 has to change live in exactly one place. */
+
+:root {
+  --ink: #1b1f24;
+  --entered: #1a56b8;
+  --wrong: #c02a2a;
+  --line: #c8cdd4;
+  --line-strong: #3a4049;
+  --sel: #dceafc;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(var(--n), 1fr);
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  border-top: 2px solid var(--line-strong);
+  border-left: 2px solid var(--line-strong);
+  font-size: calc(100cqi / var(--n) * 0.6);
+  line-height: 1;
+  user-select: none;
+  touch-action: manipulation;
+
+  &:focus-visible { outline: 2px solid var(--entered); outline-offset: 3px; }
+  &.solved { border-color: #1f8a4c; }
+}
+
+.cell {
+  display: grid;
+  place-items: center;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  color: var(--entered);
+  cursor: pointer;
+
+  &.box-left   { border-left: 2px solid var(--line-strong); }
+  &.box-top    { border-top: 2px solid var(--line-strong); }
+  &.box-right  { border-right: 2px solid var(--line-strong); }
+  &.box-bottom { border-bottom: 2px solid var(--line-strong); }
+
+  &.given { color: var(--ink); font-weight: 600; cursor: default; }
+  &.wrong { color: var(--wrong); }
+  &.selected { background: var(--sel); }
+}
