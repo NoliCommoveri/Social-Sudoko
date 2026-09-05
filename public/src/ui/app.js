@@ -1,20 +1,22 @@
 // Wiring: owns the game state, deals new puzzles, runs undo/redo, answers the
 // check button, and notices completion. Nothing here is timed or recorded —
 // there is nothing to record until slice 8.
+//
+// Size is a runtime choice, so geometry, board and keypad are rebuilt on every
+// switch rather than being fixed at load. Each size keeps its own saved game;
+// switching away from a board never destroys it.
 
-import { SIZES, DEFAULT_SIZE_KEY } from '../core/sizes.js';
+import { SIZES, SIZE_KEYS, DEFAULT_SIZE_KEY } from '../core/sizes.js';
 import { makeGeometry } from '../core/grid.js';
 import { deal } from '../core/generator.js';
 import { createBoard } from './board.js';
-import { loadGame, saveGame, debounce } from '../store/local.js';
+import { loadGame, saveGame, loadPrefs, savePrefs, debounce } from '../store/local.js';
 
 const SAVE_DELAY_MS = 200;
 
-const sizeKey = DEFAULT_SIZE_KEY;
-const geom = makeGeometry(SIZES[sizeKey]);
-
 const els = {
   board: document.getElementById('board'),
+  sizes: document.getElementById('sizes'),
   pad: document.getElementById('pad'),
   status: document.getElementById('status'),
   erase: document.getElementById('erase'),
@@ -23,6 +25,11 @@ const els = {
   redo: document.getElementById('redo'),
   check: document.getElementById('check'),
 };
+
+const prefs = loadPrefs();
+let sizeKey = SIZE_KEYS.includes(prefs.sizeKey) ? prefs.sizeKey : DEFAULT_SIZE_KEY;
+let geom = makeGeometry(SIZES[sizeKey]);
+let board = null;
 
 const state = {
   seed: 0,
@@ -36,24 +43,36 @@ const state = {
   solved: false,
 };
 
-const persist = debounce(() => {
-  saveGame(sizeKey, {
-    seed: state.seed,
-    givens: state.givens,
-    values: state.values,
-    moveStack: state.moveStack,
-  });
-}, SAVE_DELAY_MS);
+// The size and the board are arguments, not read at write time: a save still
+// inside the debounce window when the player switches size must land under the
+// size it was made on.
+const persist = debounce(saveGame, SAVE_DELAY_MS);
 
-const board = createBoard({
-  root: els.board,
-  geom,
-  onSelect: (cell) => {
-    state.selected = cell;
-    render();
-  },
-  onSet: (cell, value) => setValue(cell, value),
-});
+function save() {
+  persist(sizeKey, {
+    seed: state.seed,
+    givens: Uint8Array.from(state.givens),
+    values: Uint8Array.from(state.values),
+    moveStack: state.moveStack.map((move) => ({ ...move })),
+  });
+}
+
+// A fresh element per board, so the old one's listeners leave with it.
+function mountBoard() {
+  const fresh = document.createElement('div');
+  fresh.id = els.board.id;
+  els.board.replaceWith(fresh);
+  els.board = fresh;
+  board = createBoard({
+    root: fresh,
+    geom,
+    onSelect: (cell) => {
+      state.selected = cell;
+      render();
+    },
+    onSet: (cell, value) => setValue(cell, value),
+  });
+}
 
 function randomSeed() {
   return Math.floor(Math.random() * 0x100000000) >>> 0;
@@ -70,7 +89,7 @@ function newGame(seed = randomSeed()) {
   state.marks.clear();
   state.selected = null;
   state.solved = false;
-  persist();
+  save();
   render();
 }
 
@@ -96,6 +115,13 @@ function restore(saved) {
   return true;
 }
 
+// The board for `sizeKey`: the one saved under it if it still deals true, a
+// fresh one otherwise.
+function resume() {
+  const saved = loadGame(sizeKey, geom.cellCount);
+  if (!saved || !restore(saved)) newGame();
+}
+
 function isComplete() {
   for (let cell = 0; cell < geom.cellCount; cell++) {
     if (state.values[cell] !== state.solution[cell]) return false;
@@ -107,7 +133,7 @@ function apply(cell, value) {
   state.values[cell] = value;
   state.marks.clear();
   state.solved = isComplete();
-  persist();
+  save();
   render();
 }
 
@@ -163,13 +189,51 @@ function render() {
   els.board.classList.toggle('solved', state.solved);
   els.undo.disabled = state.moveStack.length === 0;
   els.redo.disabled = state.redoStack.length === 0;
+  for (const button of els.sizes.children) {
+    button.setAttribute('aria-pressed', Number(button.dataset.sizeKey) === sizeKey ? 'true' : 'false');
+  }
+}
+
+// Dimensions only. Size is not difficulty — that arrives in slice 4 — so
+// nothing here says "easy".
+function buildSizePicker() {
+  for (const key of SIZE_KEYS) {
+    const { n } = SIZES[key];
+    const button = document.createElement('button');
+    button.className = 'pad-key size';
+    button.type = 'button';
+    button.dataset.sizeKey = String(key);
+    button.textContent = `${n}×${n}`;
+    button.setAttribute('aria-label', `${n} by ${n}`);
+    button.addEventListener('click', () => {
+      setSize(key);
+      board.focus();
+    });
+    els.sizes.append(button);
+  }
+}
+
+function setSize(nextKey) {
+  if (nextKey === sizeKey) return;
+  // The board being left must be on disk before the one being opened is read.
+  persist.flush();
+  sizeKey = nextKey;
+  prefs.sizeKey = sizeKey;
+  savePrefs(prefs);
+  geom = makeGeometry(SIZES[sizeKey]);
+  mountBoard();
+  buildPad();
+  resume();
 }
 
 // A keypad laid out from the geometry rather than from a literal: boxW columns
 // of digits, one column of actions beside them, new game across the bottom.
 // At 9x9 that is a 3x3 block with erase/undo/redo alongside; at 6x6 and 4x4 the
-// same shape falls out with fewer digit columns.
+// same shape falls out with fewer digit columns and fewer keys — 4 digits at
+// 4x4, not 9 with 5 of them dead.
 function buildPad() {
+  for (const stale of els.pad.querySelectorAll('.digit')) stale.remove();
+
   const digitCols = geom.boxW;
   const sideColumn = digitCols + 1;
   els.pad.style.setProperty('--pad-cols', String(sideColumn));
@@ -232,8 +296,8 @@ control(els.undo, undo);
 control(els.redo, redo);
 control(els.check, check);
 
+buildSizePicker();
+mountBoard();
 buildPad();
-
-const saved = loadGame(sizeKey, geom.cellCount);
-if (!saved || !restore(saved)) newGame();
+resume();
 board.focus();

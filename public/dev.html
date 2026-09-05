@@ -41,11 +41,13 @@ the phone, not on a desktop — a fast machine says nothing about the target.</p
 <div id="timing">Not run.</div>
 
 <h2>Spot-check</h2>
-<button type="button" id="sample">Deal 3 puzzles</button>
+<p>One puzzle per size. 6&times;6 is the one to look at: its boxes are 3 wide and
+2 tall, so the heavy rules fall down the middle column and under rows 2 and 4.</p>
+<button type="button" id="sample">Deal one of each size</button>
 <div class="boards" id="boards"></div>
 
 <script type="module">
-import { SIZES, DEFAULT_SIZE_KEY } from './src/core/sizes.js';
+import { SIZES, SIZE_KEYS, DEFAULT_SIZE_KEY } from './src/core/sizes.js';
 import { makeGeometry } from './src/core/grid.js';
 import { deal, countSolutions } from './src/core/generator.js';
 import { createBoard } from './src/ui/board.js';
@@ -90,9 +92,11 @@ document.getElementById('run').addEventListener('click', async () => {
 
 document.getElementById('sample').addEventListener('click', () => {
   boards.replaceChildren();
-  for (let i = 0; i < 3; i++) {
+  for (const sizeKey of SIZE_KEYS) {
+    const size = SIZES[sizeKey];
+    const sizeGeom = makeGeometry(size);
     const seed = (Math.random() * 0x100000000) >>> 0;
-    const dealt = deal(geom, seed);
+    const dealt = deal(sizeGeom, seed);
     const clues = dealt.givens.reduce((count, value) => count + (value === 0 ? 0 : 1), 0);
 
     const figure = document.createElement('figure');
@@ -101,11 +105,12 @@ document.getElementById('sample').addEventListener('click', () => {
     const root = document.createElement('div');
     figure.append(root);
     const caption = document.createElement('figcaption');
-    caption.textContent = `seed ${seed} — ${clues} clues`;
+    caption.textContent =
+      `${size.n}×${size.n}, boxes ${size.boxW}×${size.boxH} — seed ${seed}, ${clues} clues`;
     figure.append(caption);
     boards.append(figure);
 
-    createBoard({ root, geom, onSelect: () => {}, onSet: () => {} }).render({
+    createBoard({ root, geom: sizeGeom, onSelect: () => {}, onSet: () => {} }).render({
       values: dealt.givens,
       givens: dealt.givens,
       marks: new Set(),

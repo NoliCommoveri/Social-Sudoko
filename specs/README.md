@@ -7,7 +7,7 @@ live only as the one-line entry in §6.
 | Slice | Spec | Cost | State |
 |---|---|---|---|
 | 1 | [`slice-01-grid-generator-solo.md`](slice-01-grid-generator-solo.md) | Medium | Built — criteria 1, 4, 7, 8 green; 2, 3, 5, 6 wait on S1 then S2 |
-| 2 | [`slice-02-three-grid-sizes.md`](slice-02-three-grid-sizes.md) | Small | Spec'd, not started |
+| 2 | [`slice-02-three-grid-sizes.md`](slice-02-three-grid-sizes.md) | Small | Built — criteria 1, 3, 4 green, and criterion 2's arithmetic; its by-eye half is S4 |
 | 3 | [`slice-03-solver-and-rating.md`](slice-03-solver-and-rating.md) | Medium | Spec'd, not started |
 | 4 | [`slice-04-difficulty-tiers.md`](slice-04-difficulty-tiers.md) | Medium | Spec'd, not started |
 | 5 | [`slice-05-technique-library-hints.md`](slice-05-technique-library-hints.md) | Medium | Spec'd, not started |
@@ -41,9 +41,10 @@ slice 6 seeds. It does not block that slice.
 slice's acceptance criteria.** Timing on the phone, a touch layout, a
 keyboard-only run, a deployed URL — none of those can be closed by CI or by me,
 and a criterion nobody owns is a criterion that gets assumed. S1 connects the
-repo to Cloudflare; S2 is slice 1's four device checks. Slice 4's generation
-budget, slice 5's library legibility on the phone, and slice 6's six
-deployment checks each need the same treatment when that slice starts.
+repo to Cloudflare; S2 is slice 1's four device checks; S4 is slice 2's two.
+Slice 4's generation budget, slice 5's library legibility on the phone, and
+slice 6's six deployment checks each need the same treatment when that slice
+starts.
 
 ## Conventions these specs assume
 

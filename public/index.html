@@ -74,6 +74,20 @@
     gap: 6px;
   }
 
+  /* One row of dimensions, filled by app.js from SIZE_KEYS. */
+  #sizes {
+    display: flex;
+    gap: 6px;
+
+    & .size { flex: 1; font-size: 1rem; }
+    & .size[aria-pressed='true'] {
+      background: var(--sel);
+      border-color: var(--entered);
+      color: var(--entered);
+      font-weight: 600;
+    }
+  }
+
   .pad-key {
     font: inherit;
     font-size: 1.25rem;
@@ -107,6 +121,7 @@
   <div class="layout">
     <div class="board-wrap"><div id="board"></div></div>
     <div class="side">
+      <div id="sizes" role="group" aria-label="Grid size"></div>
       <p id="status" role="status" aria-live="polite"></p>
       <!-- app.js inserts the digit keys ahead of these and places every key
            on the grid; the markup order is the tab order. -->

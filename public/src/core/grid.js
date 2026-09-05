@@ -51,6 +51,19 @@ export function makeGeometry({ n, boxW, boxH }) {
     }
   }
 
+  // Where the heavy rules fall: a cell carries one when the next column or row
+  // starts a new box. The grid's outer frame is not a box edge and is drawn by
+  // the container, so the last column and the last row are excluded — at 6x6
+  // that is column 2, and rows 1 and 3.
+  const boxEdgeRight = new Uint8Array(cellCount);
+  const boxEdgeBottom = new Uint8Array(cellCount);
+  for (let cell = 0; cell < cellCount; cell++) {
+    const col = colOf[cell];
+    const row = rowOf[cell];
+    boxEdgeRight[cell] = (col + 1) % boxW === 0 && col !== n - 1 ? 1 : 0;
+    boxEdgeBottom[cell] = (row + 1) % boxH === 0 && row !== n - 1 ? 1 : 0;
+  }
+
   const unitsOf = [];
   const peersOf = [];
   for (let cell = 0; cell < cellCount; cell++) {
@@ -73,6 +86,7 @@ export function makeGeometry({ n, boxW, boxH }) {
   const geom = {
     n, boxW, boxH, cellCount, boxesAcross,
     rowOf, colOf, boxOf,
+    boxEdgeRight, boxEdgeBottom,
     units, unitsOf, peersOf,
     ALL: (1 << n) - 1,
   };

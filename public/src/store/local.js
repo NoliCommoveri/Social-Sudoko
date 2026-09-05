@@ -87,7 +87,11 @@ export function clearGame(sizeKey) {
   drop(gameKey(sizeKey));
 }
 
-/** UI preferences. Empty in slice 1; the key exists so slice 2 can fill it. */
+/**
+ * UI preferences: one key holding many fields, read and written together. A
+ * missing field is a default, never an error, so a preference added later
+ * costs nothing to a store written before it existed.
+ */
 export function loadPrefs() {
   const saved = readJSON(PREFS_KEY);
   if (saved === null || saved.version !== VERSION) return { version: VERSION };
@@ -98,11 +102,30 @@ export function savePrefs(prefs) {
   writeJSON(PREFS_KEY, { ...prefs, version: VERSION });
 }
 
-/** Trailing debounce, so a burst of edits costs one write. */
+/**
+ * Trailing debounce, so a burst of edits costs one write. `flush` runs a
+ * pending call now: switching size has to land the old board before the new
+ * one is read back, or a save still in the window is read as the old state.
+ */
 export function debounce(fn, ms) {
   let timer = 0;
-  return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => fn(...args), ms);
+  let pending = null;
+
+  const run = () => {
+    const args = pending;
+    pending = null;
+    if (args) fn(...args);
   };
+
+  const wrapped = (...args) => {
+    pending = args;
+    clearTimeout(timer);
+    timer = setTimeout(run, ms);
+  };
+  wrapped.flush = () => {
+    if (pending === null) return;
+    clearTimeout(timer);
+    run();
+  };
+  return wrapped;
 }

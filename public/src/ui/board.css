@@ -1,5 +1,7 @@
 /* Board rendering, shared by index.html and dev.html so the box-border rules
-   slice 2 has to change live in exactly one place. */
+   live in exactly one place. Sizing is container-relative: one set of rules
+   draws a 4-wide, a 6-wide and a 9-wide grid, with cell and font size falling
+   out of --n. */
 
 :root {
   --ink: #1b1f24;
@@ -34,10 +36,11 @@
   color: var(--entered);
   cursor: pointer;
 
-  &.box-left   { border-left: 2px solid var(--line-strong); }
-  &.box-top    { border-top: 2px solid var(--line-strong); }
-  &.box-right  { border-right: 2px solid var(--line-strong); }
-  &.box-bottom { border-bottom: 2px solid var(--line-strong); }
+  /* Heavy where a box ends inside the grid, and again at the outer edge. The
+     board draws the frame's top and left; the last column and row draw its
+     right and bottom, because those live on cells. */
+  &.box-right, &.edge-right   { border-right: 2px solid var(--line-strong); }
+  &.box-bottom, &.edge-bottom { border-bottom: 2px solid var(--line-strong); }
 
   &.given { color: var(--ink); font-weight: 600; cursor: default; }
   &.wrong { color: var(--wrong); }

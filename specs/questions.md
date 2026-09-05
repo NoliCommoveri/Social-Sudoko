@@ -55,13 +55,30 @@ Order matters — each step needs the one above it.
 4. **On the Chromebook, solve a full 9×9 using only the keyboard** — no mouse,
    no trackpad, including new-game, undo, and check. *(criterion 6)*
 
-Steps 3 and 4 are the ones that decide whether the layout survives. Do them
-before slice 2 starts; slice 2 adds two more sizes to whatever `board.js`
-already is, and a layout fault found there costs three times what it costs here.
+Steps 3 and 4 are the ones that decide whether the layout survives, and they
+are the urgent ones: every size added since draws through the same `board.js`,
+so a layout fault found now is a fault in all three at once.
 
-A "no" on any step is not a slice-2 blocker to work around — it is slice 1
-reopening. Say what went wrong in as much detail as you can stand; "the board
-felt cramped" is usable, "it did not work" is not.
+A "no" on any step is not something to work around — it is slice 1 reopening.
+Say what went wrong in as much detail as you can stand; "the board felt
+cramped" is usable, "it did not work" is not.
+
+### S4 — Look at 6×6 and 4×4 on the phone
+
+Slice 2's one criterion no test closes: box borders correct *by eye*. Its
+arithmetic is asserted cell by cell in `grid.test.js`, and the classes those
+flags produce are what `board.js` draws — but whether the heavy rules read as
+boxes at 360px wide is a thing only a phone answers.
+
+1. **On the Android phone, open `/dev.html` and press "Deal one of each size".**
+   The 6×6 should show boxes 3 wide and 2 tall: one heavy rule down the middle,
+   two across. *(criterion 2)*
+2. **On `/`, switch to 6×6, enter a few digits, switch to 9×9 and back.** The
+   6×6 board and its entries should still be there, and so should the 9×9 one.
+   Reload: it should come back at 6×6. *(criterion 3)*
+
+Do this with S2, not instead of it — S2 is about whether the 9×9 layout works
+at all, this is about whether the other two sizes are drawn right.
 
 ### S3 — Nothing else
 
