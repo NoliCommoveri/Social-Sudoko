@@ -65,9 +65,12 @@
     font-size: 0.95rem;
   }
 
+  /* A keypad: the digits in a boxW-wide block, erase/undo/redo down the column
+     beside them, new game across the bottom. Every cell is placed by app.js
+     from the geometry, so 4x4 and 6x6 get the same shape with fewer columns. */
   #pad {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(var(--pad-cols), 1fr);
     gap: 6px;
   }
 
@@ -75,15 +78,16 @@
     font: inherit;
     font-size: 1.25rem;
     padding: 10px 0;
-    min-height: 46px;
+    min-height: 48px;
     border: 1px solid var(--key-edge);
     border-radius: 8px;
     background: var(--key);
     color: var(--ink);
     cursor: pointer;
 
-    &.erase { grid-column: span 5; font-size: 1rem; }
+    &.control { font-size: 0.95rem; }
     &:active { background: var(--sel); }
+    &:disabled { color: var(--line); cursor: default; }
   }
 
   /* Wide: the pad sits beside the board. Narrow: beneath it — there is no
@@ -93,29 +97,7 @@
   @container (min-width: 560px) {
     .layout { flex-direction: row; }
     .board-wrap { max-width: min(62%, 72vh); }
-    .side { max-width: 320px; }
-    #pad { grid-template-columns: repeat(3, 1fr); }
-    .pad-key.erase { grid-column: span 3; }
-  }
-
-  .controls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-
-    & button {
-      font: inherit;
-      flex: 1 1 auto;
-      min-height: 44px;
-      padding: 8px 12px;
-      border: 1px solid var(--key-edge);
-      border-radius: 8px;
-      background: var(--key);
-      color: var(--ink);
-      cursor: pointer;
-    }
-
-    & button:disabled { color: var(--line); cursor: default; }
+    .side { max-width: 340px; }
   }
 </style>
 </head>
@@ -126,12 +108,14 @@
     <div class="board-wrap"><div id="board"></div></div>
     <div class="side">
       <p id="status" role="status" aria-live="polite"></p>
-      <div id="pad"></div>
-      <div class="controls">
-        <button type="button" id="check">Check</button>
-        <button type="button" id="undo">Undo</button>
-        <button type="button" id="redo">Redo</button>
-        <button type="button" id="new-game">New game</button>
+      <!-- app.js inserts the digit keys ahead of these and places every key
+           on the grid; the markup order is the tab order. -->
+      <div id="pad">
+        <button type="button" class="pad-key control" id="erase">Erase</button>
+        <button type="button" class="pad-key control" id="undo">Undo</button>
+        <button type="button" class="pad-key control" id="redo">Redo</button>
+        <button type="button" class="pad-key control" id="check">Check</button>
+        <button type="button" class="pad-key control" id="new-game">New game</button>
       </div>
     </div>
   </div>

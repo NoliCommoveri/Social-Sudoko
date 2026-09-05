@@ -17,6 +17,7 @@ const els = {
   board: document.getElementById('board'),
   pad: document.getElementById('pad'),
   status: document.getElementById('status'),
+  erase: document.getElementById('erase'),
   newGame: document.getElementById('new-game'),
   undo: document.getElementById('undo'),
   redo: document.getElementById('redo'),
@@ -164,25 +165,44 @@ function render() {
   els.redo.disabled = state.redoStack.length === 0;
 }
 
+// A keypad laid out from the geometry rather than from a literal: boxW columns
+// of digits, one column of actions beside them, new game across the bottom.
+// At 9x9 that is a 3x3 block with erase/undo/redo alongside; at 6x6 and 4x4 the
+// same shape falls out with fewer digit columns.
 function buildPad() {
+  const digitCols = geom.boxW;
+  const sideColumn = digitCols + 1;
+  els.pad.style.setProperty('--pad-cols', String(sideColumn));
+
+  const keys = document.createDocumentFragment();
   for (let value = 1; value <= geom.n; value++) {
     const button = document.createElement('button');
-    button.className = 'pad-key';
+    button.className = 'pad-key digit';
     button.type = 'button';
     button.textContent = String(value);
+    button.style.gridColumn = String(((value - 1) % digitCols) + 1);
+    button.style.gridRow = String(Math.floor((value - 1) / digitCols) + 1);
     button.addEventListener('click', () => {
       if (state.selected !== null) setValue(state.selected, value);
+      board.focus();
     });
-    els.pad.append(button);
+    keys.append(button);
   }
-  const erase = document.createElement('button');
-  erase.className = 'pad-key erase';
-  erase.type = 'button';
-  erase.textContent = 'Erase';
-  erase.addEventListener('click', () => {
-    if (state.selected !== null) setValue(state.selected, 0);
+  // Ahead of the action keys, so the markup order is the tab order.
+  els.pad.prepend(keys);
+
+  const beside = [els.erase, els.undo, els.redo];
+  beside.forEach((el, index) => {
+    el.style.gridColumn = String(sideColumn);
+    el.style.gridRow = String(index + 1);
   });
-  els.pad.append(erase);
+
+  const digitRows = Math.ceil(geom.n / digitCols);
+  const belowBoth = Math.max(digitRows, beside.length) + 1;
+  els.check.style.gridColumn = '1 / -1';
+  els.check.style.gridRow = String(belowBoth);
+  els.newGame.style.gridColumn = '1 / -1';
+  els.newGame.style.gridRow = String(belowBoth + 1);
 }
 
 // The on-screen undo/redo buttons are not optional — the phone has no Ctrl.
@@ -204,6 +224,9 @@ function control(el, action) {
   });
 }
 
+control(els.erase, () => {
+  if (state.selected !== null) setValue(state.selected, 0);
+});
 control(els.newGame, () => newGame());
 control(els.undo, undo);
 control(els.redo, redo);
