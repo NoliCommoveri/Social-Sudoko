@@ -78,13 +78,15 @@ Size-parameterized from the start: `{ n, boxW, boxH }` for 4/6/9. Peers (row, co
 
 ### 4.2 Generator
 
-Backtracking fill for a complete valid grid, then remove clues while a **solution counter** confirms uniqueness (count solutions, stop at 2). Fast enough at 9×9 to be imperceptible.
+Backtracking fill for a complete valid grid, then remove clues while a **solution counter** confirms uniqueness (count solutions, stop at 2). Then add clues back until the board meets its size's openness floor (§4.3). Fast enough at 9×9 to be imperceptible — around 6ms a deal.
 
-### 4.3 Difficulty tiers via clue supersets
+The add-back is not optional polish. Removal stops at a *minimal* clue set, which is the hardest puzzle a solution grid can make: about 24 givens at 9×9, over half of them not solvable by singles at all. Uniqueness constrains the solution, not the path to it.
 
-Generate the hardest tier first as a uniquely-solvable clue set. Build easier tiers by *adding* clues to that same set. Any superset of a uniquely-solvable set is still uniquely solvable — so all players share one solution grid, guaranteed, whatever tier they're on.
+### 4.3 Two difficulty axes
 
-Tiering by **hardest technique required**, not blank count:
+Difficulty has a ceiling and a floor. They are independent, and a puzzle needs both set to be pleasant.
+
+**Ceiling — the hardest technique required.** Tiering by that, not by blank count:
 
 | Tier | Solvable with |
 |---|---|
@@ -93,6 +95,12 @@ Tiering by **hardest technique required**, not blank count:
 | 3 | + pointing pairs / box-line |
 
 *Note:* 4×4 realistically only reaches tier 1. 6×6 reaches tier 2 and sometimes 3. This is a property of the grids, not a gap to close.
+
+**Floor — openness.** A *round* is one sweep of the board: every cell findable right now by a naked or hidden single. A puzzle's **openness floor** is the fewest cells any round offers. Rounds that finish the board are excluded — their count is low because the puzzle is ending, not because it is tight, and counting them would fail every puzzle ever made.
+
+The ceiling says nothing about the floor. A tier-1 puzzle can still be a single-file corridor — one findable cell, fifty turns running — and a minimal carve usually is. That is a miserable way to learn and the players are children, so the floor is enforced on every deal, at every size, whatever tier is asked for. `SIZES[<size>].openness` holds it; a floor of 6 lands 9×9 at around 30 givens.
+
+**Both axes move the same lever: adding clues from the solution to a uniquely-solvable set.** Any superset of a uniquely-solvable set is still uniquely solvable — so all players share one solution grid, guaranteed, whatever tier they're on. Generate the hardest tier first as a uniquely-solvable clue set; build easier tiers, and the openness floor, by *adding* clues to that same set.
 
 ### 4.4 Reduced logical solver
 
@@ -147,6 +155,7 @@ Rendered through the same board component as live play. Standard technique names
 
 1. Grid model + generator + solo play, one grid size — no timer, no server
 2. All three grid sizes
+2.5. The openness floor — core only, no UI
 3. Reduced logical solver + difficulty rating — core only, no UI
 4. Difficulty tiers, the picker, pencil marks (R3)
 5. Technique library (R6) + the hint button
@@ -157,6 +166,8 @@ Rendered through the same board component as live play. Standard technique names
 10. PWA — manifest, service worker, install to homescreen
 
 Slices 1–5 have no server dependency, and they ship R2 and R6 in full plus the tiering mechanism R3 rests on. R1, R4, and R5 all need the DO, because every stat this project keeps lives in DO SQLite (§4.6) and none of it is mirrored client-side. If Cloudflare setup stalls, what still ships is solo play at three sizes and three difficulties with the technique library — not four of six requirements.
+
+**Why the openness floor comes before the solver.** Step 2.5 is out of numerical order because it is a bug fix, not a feature: until it existed the app dealt minimal carves, which is expert difficulty at 9×9 with no picker to escape it. It needs singles but not the rating, so it costs a fraction of step 3 and does not wait on it. Step 4 inherits its add-back machinery.
 
 **Why the solver is split from the tiering.** Steps 3 and 4 were one slice, and one slice that size does not fit a session (`CLAUDE.md`'s 120k cap). The split is at the only boundary that is free: step 3 is four pure functions plus a rating function, testable against hand-built fixtures with no UI at all and no dependency on the generator's output distribution; step 4 is a search built on top of them, a per-size measurement, and the UI that exposes both. Step 3 ends with `rate` proven sound — which is the precondition step 4's binary search rests on, and the thing you want settled before a search starts hiding its bugs behind a retry budget.
 

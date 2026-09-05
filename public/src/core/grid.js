@@ -11,12 +11,20 @@ export const UNIT_KINDS = 3;
 const memo = new Map();
 
 /**
- * @param {{ n: number, boxW: number, boxH: number }} size
+ * @param {{ n: number, boxW: number, boxH: number, openness: number }} size
  * @returns {object} geometry, memoized per size
  */
-export function makeGeometry({ n, boxW, boxH }) {
+export function makeGeometry({ n, boxW, boxH, openness }) {
   if (boxW * boxH !== n) {
     throw new Error(`box ${boxW}x${boxH} does not tile a grid of side ${n}`);
+  }
+  // Not a geometric fact, but every caller that holds a geometry needs it and
+  // none of them get to choose it: it is fixed per size, unlike the difficulty
+  // tier of design 4.3, which is a per-deal argument. Checked here because the
+  // way it fails downstream — `ease` never satisfying an undefined floor — fills
+  // the whole grid in silence.
+  if (!Number.isInteger(openness) || openness < 1) {
+    throw new Error(`size ${n} has no openness floor`);
   }
   const key = `${n}:${boxW}:${boxH}`;
   const hit = memo.get(key);
@@ -84,7 +92,7 @@ export function makeGeometry({ n, boxW, boxH }) {
   }
 
   const geom = {
-    n, boxW, boxH, cellCount, boxesAcross,
+    n, boxW, boxH, openness, cellCount, boxesAcross,
     rowOf, colOf, boxOf,
     boxEdgeRight, boxEdgeBottom,
     units, unitsOf, peersOf,

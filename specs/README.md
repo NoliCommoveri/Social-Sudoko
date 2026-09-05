@@ -8,6 +8,7 @@ live only as the one-line entry in §6.
 |---|---|---|---|
 | 1 | [`slice-01-grid-generator-solo.md`](slice-01-grid-generator-solo.md) | Medium | Built — criteria 1, 4, 7, 8 green; 2, 3, 5, 6 wait on S1 then S2 |
 | 2 | [`slice-02-three-grid-sizes.md`](slice-02-three-grid-sizes.md) | Small | Built — criteria 1, 3, 4 green, and criterion 2's arithmetic; its by-eye half is S4 |
+| 2.5 | [`slice-025-openness-floor.md`](slice-025-openness-floor.md) | Small | Built — all three criteria green |
 | 3 | [`slice-03-solver-and-rating.md`](slice-03-solver-and-rating.md) | Medium | Spec'd, not started |
 | 4 | [`slice-04-difficulty-tiers.md`](slice-04-difficulty-tiers.md) | Medium | Spec'd, not started |
 | 5 | [`slice-05-technique-library-hints.md`](slice-05-technique-library-hints.md) | Medium | Spec'd, not started |
@@ -16,6 +17,11 @@ live only as the one-line entry in §6.
 | 8 | Timer + stats + best times | — | Not spec'd |
 | 9 | WebSocket sync + race mode | — | Not spec'd |
 | 10 | PWA | — | Not spec'd |
+
+Slice 2.5 is out of numerical order because it is a defect fix against what
+slices 1 and 2 shipped, not a feature: `deal` returned minimal carves, which at
+9×9 are expert puzzles, and no picker exists before slice 4 to ask for anything
+else. It needs singles but not the rating, so it does not wait on slice 3.
 
 No slice is estimated above Medium. `CLAUDE.md` caps a session at ~120k tokens
 and says a Large slice should be split rather than started; a spec that comes out

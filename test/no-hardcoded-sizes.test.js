@@ -137,5 +137,7 @@ test('core/ touches no DOM, window or storage', () => {
 });
 
 test('every core file is covered by this scan', () => {
-  assert.deepEqual(coreFiles, ['generator.js', 'grid.js', 'rng.js', 'sizes.js']);
+  assert.deepEqual(coreFiles, [
+    'candidates.js', 'generator.js', 'grid.js', 'openness.js', 'rng.js', 'sizes.js',
+  ]);
 });
