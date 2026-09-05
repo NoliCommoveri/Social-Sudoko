@@ -6,7 +6,7 @@ live only as the one-line entry in §6.
 
 | Slice | Spec | Cost | State |
 |---|---|---|---|
-| 1 | [`slice-01-grid-generator-solo.md`](slice-01-grid-generator-solo.md) | Medium | Spec'd, not started |
+| 1 | [`slice-01-grid-generator-solo.md`](slice-01-grid-generator-solo.md) | Medium | Built — criteria 1, 4, 7, 8 green; 2, 3, 5, 6 wait on S1 then S2 |
 | 2 | [`slice-02-three-grid-sizes.md`](slice-02-three-grid-sizes.md) | Small | Spec'd, not started |
 | 3 | [`slice-03-solver-and-rating.md`](slice-03-solver-and-rating.md) | Medium | Spec'd, not started |
 | 4 | [`slice-04-difficulty-tiers.md`](slice-04-difficulty-tiers.md) | Medium | Spec'd, not started |

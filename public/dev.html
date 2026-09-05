@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sudoku — dev</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="./src/ui/board.css">
+<style>
+  :root { color-scheme: light; --key: #f2f4f7; --key-edge: #cfd5dd; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 10px; background: #fff; color: var(--ink);
+    font-family: system-ui, sans-serif; max-width: 1100px; margin-inline: auto;
+  }
+  h1 { font-size: 1.1rem; margin: 4px 0 12px; }
+  h2 { font-size: 0.95rem; margin: 18px 0 8px; }
+  button {
+    font: inherit; min-height: 44px; padding: 8px 14px; border-radius: 8px;
+    border: 1px solid var(--key-edge); background: var(--key); color: var(--ink);
+  }
+  #timing { font-variant-numeric: tabular-nums; line-height: 1.6; margin: 10px 0; }
+  .verdict { font-weight: 600; }
+  .pass { color: #1f6b3b; }
+  .fail { color: var(--wrong); }
+  .boards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+  .sample { container-type: inline-size; }
+  .sample figcaption { font-size: 0.8rem; color: #5b6470; margin: 4px 0 0; }
+  .board { cursor: default; }
+  .cell { cursor: default; }
+</style>
+</head>
+<body>
+<h1>Generator — timing and spot-check</h1>
+
+<p>Criterion 3: dealing a 9&times;9 puzzle takes under <strong>250&nbsp;ms</strong>
+at the 95th percentile over 100 deals. Above 1&nbsp;s is a hard fail. Run this on
+the phone, not on a desktop — a fast machine says nothing about the target.</p>
+
+<button type="button" id="run">Run 100 deals</button>
+<div id="timing">Not run.</div>
+
+<h2>Spot-check</h2>
+<button type="button" id="sample">Deal 3 puzzles</button>
+<div class="boards" id="boards"></div>
+
+<script type="module">
+import { SIZES, DEFAULT_SIZE_KEY } from './src/core/sizes.js';
+import { makeGeometry } from './src/core/grid.js';
+import { deal, countSolutions } from './src/core/generator.js';
+import { createBoard } from './src/ui/board.js';
+
+const DEALS = 100;
+const TARGET_MS = 250;
+const HARD_FAIL_MS = 1000;
+
+const geom = makeGeometry(SIZES[DEFAULT_SIZE_KEY]);
+const timing = document.getElementById('timing');
+const boards = document.getElementById('boards');
+
+const percentile = (sorted, p) => sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * p))];
+
+document.getElementById('run').addEventListener('click', async () => {
+  const times = [];
+  let unique = 0;
+  // Chunked so the page can repaint between batches; a 100-deal blocking loop
+  // on a phone looks like a crash.
+  for (let i = 0; i < DEALS; i++) {
+    const t0 = performance.now();
+    const dealt = deal(geom, (Date.now() ^ (i * 2654435761)) >>> 0);
+    times.push(performance.now() - t0);
+    if (countSolutions(geom, dealt.givens, 2) === 1) unique++;
+    if (i % 10 === 9) {
+      timing.textContent = `${i + 1} / ${DEALS}…`;
+      await new Promise(requestAnimationFrame);
+    }
+  }
+  times.sort((a, b) => a - b);
+  const p95 = percentile(times, 0.95);
+  const verdict = p95 >= HARD_FAIL_MS ? ['fail', 'HARD FAIL']
+    : p95 >= TARGET_MS ? ['fail', 'over budget']
+    : ['pass', 'within budget'];
+  timing.innerHTML = `
+    median ${percentile(times, 0.5).toFixed(1)} ms<br>
+    p95 ${p95.toFixed(1)} ms<br>
+    max ${times.at(-1).toFixed(1)} ms<br>
+    uniquely solvable: ${unique} / ${DEALS}<br>
+    <span class="verdict ${verdict[0]}">${verdict[1]}</span>`;
+});
+
+document.getElementById('sample').addEventListener('click', () => {
+  boards.replaceChildren();
+  for (let i = 0; i < 3; i++) {
+    const seed = (Math.random() * 0x100000000) >>> 0;
+    const dealt = deal(geom, seed);
+    const clues = dealt.givens.reduce((count, value) => count + (value === 0 ? 0 : 1), 0);
+
+    const figure = document.createElement('figure');
+    figure.className = 'sample';
+    figure.style.margin = '0';
+    const root = document.createElement('div');
+    figure.append(root);
+    const caption = document.createElement('figcaption');
+    caption.textContent = `seed ${seed} — ${clues} clues`;
+    figure.append(caption);
+    boards.append(figure);
+
+    createBoard({ root, geom, onSelect: () => {}, onSet: () => {} }).render({
+      values: dealt.givens,
+      givens: dealt.givens,
+      marks: new Set(),
+      selected: null,
+    });
+  }
+});
+</script>
+</body>
+</html>

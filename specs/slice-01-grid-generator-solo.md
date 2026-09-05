@@ -50,6 +50,7 @@ public/               the assets directory — everything here is served
       generator.js    fill, count solutions, carve
     ui/
       board.js        render + input for one board
+      board.css       board and cell rules, shared by index.html and dev.html
       app.js          wiring, new-game, completion
     store/
       local.js        localStorage read/write, versioned per-size keys
@@ -59,6 +60,11 @@ test/                 not served
   no-hardcoded-sizes.test.js
 .github/workflows/test.yml
 ```
+
+The board's own CSS is a file rather than a `<style>` block because both
+`index.html` and `dev.html` render boards, and the box-border rules are exactly
+what slice 2 has to change. Everything else stays inline in the page that uses
+it.
 
 Everything served lives under `public/`. Nothing else does — the repo's docs and
 tests must not be published, and an assets directory pointed at the repo root
